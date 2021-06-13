@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "184289019379",
+    "project_id": "yk-creation-booking",
+    "storage_bucket": "yk-creation-booking.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184289019379:android:7ed66912c14617e3993e86",
+        "android_client_info": {
+          "package_name": "com.example.yk_creation_booking"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "184289019379-csgt9e2fhofo3vvaimtkv5m517r4u50g.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.yk_creation_booking",
+            "certificate_hash": "c68898c8b0afba6078b1fab52cc46cd76d708f6b"
+          }
+        },
+        {
+          "client_id": "184289019379-e9bc96jt8kff28j1ni6airhonlh6a96f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8_eJtQYq5dLj7AywM4WGzg674FWN3lnQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184289019379-e9bc96jt8kff28j1ni6airhonlh6a96f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
