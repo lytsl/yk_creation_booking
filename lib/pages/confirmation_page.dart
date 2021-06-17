@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
 import 'package:yk_creation_booking/data/appointment_data.dart';
 import 'package:yk_creation_booking/pages/otp_page.dart';
@@ -40,8 +41,8 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
 
   @override
   void initState() {
+    this.selectedLocation = widget.location;
     super.initState();
-    if (selectedLocation == null) this.selectedLocation = widget.location;
   }
 
   @override
@@ -59,42 +60,37 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.access_time),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text(widget.time +
-                        ' ' +
-                        widget.date.day.toString() +
-                        '-' +
-                        widget.date.month.toString()),
-                  ],
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      side: BorderSide(color: primaryColor1)),
+                  leading: Icon(Icons.access_time),
+                  title: Text(widget.time +
+                      ' ' +
+                      widget.date.day.toString() +
+                      '-' +
+                      widget.date.month.toString()),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.account_circle),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text(widget.person),
-                  ],
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      side: BorderSide(color: primaryColor1)),
+                  leading: Icon(Icons.account_circle),
+                  title: Text(widget.person),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Icon(Icons.location_on),
-                    SizedBox(
-                      width: 8,
-                    ),
-                    Text('Location ${this.selectedLocation}'),
-                  ],
+                child: ListTile(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      side: BorderSide(color: primaryColor1)),
+                  leading: Icon(Icons.location_on),
+                  title: Text(
+                      'Location ${(this.selectedLocation == -1) ? 'Unselected' : this.selectedLocation}'),
                 ),
               ),
               AnimationLimiter(
@@ -119,9 +115,13 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                               elevation: 4,
                               child: ExpansionTile(
                                 collapsedBackgroundColor:
-                                (index == this.selectedLocation)
-                                    ? (Colors.blue.shade200)
-                                    : Colors.blueGrey.shade100,
+                                    (index == this.selectedLocation)
+                                        ? (primaryColor2)
+                                        : primaryColor3,
+                                backgroundColor:
+                                    (index == this.selectedLocation)
+                                        ? (primaryColor2)
+                                        : primaryColor3,
                                 leading: Icon(Icons.location_on),
                                 title: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +132,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                                     ),
                                     Padding(
                                       padding:
-                                      const EdgeInsets.fromLTRB(0, 0, 8, 8),
+                                          const EdgeInsets.fromLTRB(0, 0, 8, 8),
                                       child: Text(
                                         'Location Details $index\nlocation details...$index',
                                         style: blueGrey14,
@@ -178,6 +178,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                     padding: const EdgeInsets.all(16.0),
                     child: CircularButton(
                         text: 'Confirm',
+                        backColor: primaryColor,
                         onButtonTap: () => navigateToOTPPage()),
                   )),
             ],

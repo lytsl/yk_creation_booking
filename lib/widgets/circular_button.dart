@@ -23,7 +23,7 @@ class CircularButton extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(50)),
           color: backColor,
-          border: Border.all(color: Colors.blueGrey.shade700, width: 2),
+          //border: Border.all(color: Colors.blueGrey.shade700, width: 2),
         ),
         child: Text(
           text,

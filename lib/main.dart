@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yk_creation_booking/pages/onboarding_page.dart';
 import 'package:yk_creation_booking/pages/service_page.dart';
 
+import 'constants/colors.dart';
+
 int? location, gender;
 
 Future<void> main() async {
@@ -15,6 +17,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   runApp(MyApp());
 }
+//#503929
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -24,7 +27,12 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: primaryColor1,
+        accentColor: primaryColor,
+        textTheme: TextTheme(
+            //bodyText1: TextStyle(color: primaryColor),
+            //bodyText1: TextStyle(color: primaryColor),
+            ),
       ),
       //home: OnBoardingPage(),
       initialRoute: location == null ? "first" : "/",
