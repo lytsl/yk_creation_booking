@@ -14,10 +14,10 @@ class CardWithSide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+    return SizedBox(
+      height: this.height + 5,
+      child: GestureDetector(
+        onTap: onTap,
         child: Card(
           color: Colors.white,
           shape: RoundedRectangleBorder(
@@ -33,11 +33,12 @@ class CardWithSide extends StatelessWidget {
                 border: Border(left: BorderSide(color: color, width: 16)),
                 color: Colors.blueGrey.shade50,
               ),
-              child: Row(
-                //crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Flexible(
-                    child: Container(
+              child: SizedBox(
+                height: this.height,
+                child: Row(
+                  //crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
                       color: color,
                       width: 40,
                       height: this.height,
@@ -45,9 +46,9 @@ class CardWithSide extends StatelessWidget {
                           margin: EdgeInsets.only(right: 16),
                           child: Icon(Icons.calendar_today)),
                     ),
-                  ),
-                  child,
-                ],
+                    Expanded(child: child),
+                  ],
+                ),
               ),
             ),
           ),
