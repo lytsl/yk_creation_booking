@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
-
-import 'location_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yk_creation_booking/pages/otp_page.dart';
 
 class OnBoardingPage extends StatefulWidget {
   @override
@@ -11,10 +11,11 @@ class OnBoardingPage extends StatefulWidget {
 class _OnBoardingPageState extends State<OnBoardingPage> {
   final introKey = GlobalKey<IntroductionScreenState>();
 
-  void _onIntroEnd(context) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => LocationPage()),
-    );
+  Future<void> _onIntroEnd(context) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('visit', true);
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => OTPPage()), (route) => false);
   }
 
   Widget _buildFullscrenImage(String assetName) {
@@ -29,7 +30,6 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: SafeArea(
         child: IntroductionScreen(

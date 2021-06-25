@@ -1,9 +1,10 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
-import 'package:yk_creation_booking/data/appointment_data.dart';
-import 'package:yk_creation_booking/pages/otp_page.dart';
+import 'package:yk_creation_booking/data/appointment_model.dart';
+import 'package:yk_creation_booking/pages/appointment_details_page.dart';
 import 'package:yk_creation_booking/widgets/circular_button.dart';
 
 class ConfirmationPage extends StatefulWidget {
@@ -15,9 +16,9 @@ class ConfirmationPage extends StatefulWidget {
       {Key? key,
       required this.location,
       required this.gender,
-      required this.person,
-      required this.time,
-      required this.date})
+    required this.person,
+    required this.time,
+    required this.date})
       : super(key: key);
 
   @override
@@ -25,18 +26,17 @@ class ConfirmationPage extends StatefulWidget {
 }
 
 class _ConfirmationPageState extends State<ConfirmationPage> {
-  int? selectedLocation;
+  late int selectedLocation;
 
   void navigateToOTPPage() {
+    final data = AppointmentData();
+    data.storeID = selectedLocation.toString();
+    data.date = formatDate(widget.date, [D, ' ', dd, '/', mm, '/', yy]);
+    data.slot = widget.time;
+    data.gender = widget.gender.toString();
+    data.stylist = widget.person;
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => OTPPage(
-              appointmentData: AppointmentData(
-                  location: selectedLocation,
-                  date: widget.date,
-                  time: widget.time,
-                  gender: widget.gender,
-                  person: widget.person),
-            )));
+        builder: (context) => AppointmentDetailsPage(appointmentData: data)));
   }
 
   @override
@@ -53,6 +53,9 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
           'Confirmation',
           style: bold16,
         ),
+        backgroundColor: primaryColor,
+        titleTextStyle: TextStyle(
+            fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -99,7 +102,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                     itemCount: 3,
                     physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
-                      int loc = this.selectedLocation!;
                       return AnimationConfiguration.staggeredList(
                         position: index,
                         duration: const Duration(milliseconds: 500),
@@ -115,13 +117,13 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                               elevation: 4,
                               child: ExpansionTile(
                                 collapsedBackgroundColor:
-                                    (index == this.selectedLocation)
-                                        ? (primaryColor2)
-                                        : primaryColor3,
+                                (index == this.selectedLocation)
+                                    ? (primaryColor2)
+                                    : primaryColor3,
                                 backgroundColor:
-                                    (index == this.selectedLocation)
-                                        ? (primaryColor2)
-                                        : primaryColor3,
+                                (index == this.selectedLocation)
+                                    ? (primaryColor2)
+                                    : primaryColor3,
                                 leading: Icon(Icons.location_on),
                                 title: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -132,7 +134,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                                     ),
                                     Padding(
                                       padding:
-                                          const EdgeInsets.fromLTRB(0, 0, 8, 8),
+                                      const EdgeInsets.fromLTRB(0, 0, 8, 8),
                                       child: Text(
                                         'Location Details $index\nlocation details...$index',
                                         style: blueGrey14,

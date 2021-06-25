@@ -3,7 +3,6 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
-import 'package:yk_creation_booking/pages/service_page.dart';
 import 'package:yk_creation_booking/util/gender.dart';
 
 class LocationPage extends StatefulWidget {
@@ -16,6 +15,8 @@ class LocationPage extends StatefulWidget {
 class _LocationPageState extends State<LocationPage> {
   int gender = Gender.male;
   bool _selectedGender = false;
+  int _duration = 700;
+  Curve _curve = Curves.ease;
 
   Future<void> navigateToServicePage(int index) async {
     print('navigateToServicePage');
@@ -30,179 +31,244 @@ class _LocationPageState extends State<LocationPage> {
               )),
     );*/
     print(index + 1);
-    Navigator.of(context).pushAndRemoveUntil(
+    /*Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
             builder: (context) => ServicePage(
-              gender: this.gender,
+                  gender: this.gender,
                   location: index,
                 )),
-        (route) => false);
+        (route) => false);*/
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Builder(
-          builder: (context) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Text(
-                    'Select Your Option',
-                    style: bold16,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 16,
+            ),
+            Align(
+                alignment: Alignment.topCenter,
+                child: Text(
+                  'Salon',
+                  style: bold16,
+                )),
+            SizedBox(
+              height: 8,
+            ),
+            Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  height: 6,
+                  width: 30,
+                  color: Colors.red,
+                )),
+            Container(
+              height: 2,
+              width: double.infinity,
+              color: Colors.grey.shade300,
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 12, right: 16),
+              child: Stack(
+                children: [
+                  Align(
+                    alignment: Alignment.topLeft,
+                    child: Icon(Icons.location_on),
                   ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  Container(
+                      margin: EdgeInsets.fromLTRB(24, 6, 0, 0),
+                      child: Text(
+                          'Switch on your device location to improve your digital experience.')),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Select Your Option',
+                style: bold16,
+              ),
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            AnimatedContainer(
+              curve: _curve,
+              duration: Duration(
+                milliseconds: _duration,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    //male
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          gender = Gender.male;
-                          _selectedGender = true;
-                        });
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            foregroundColor: (gender == Gender.male)
-                                ? selectedGenderColor
-                                : unSelectedGenderColor,
-                            child: Icon(Icons.account_circle,
-                                size: 100,
-                                color: (gender == Gender.male)
-                                    ? selectedGenderColor
-                                    : unSelectedGenderColor),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Male',
-                            style: bold16,
-                          ),
-                        ],
-                      ),
+                    Text(
+                      'Select Your location',
+                      style: TextStyle(color: Colors.grey),
                     ),
-                    //female
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          gender = Gender.female;
-                          _selectedGender = true;
-                        });
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          CircleAvatar(
-                            radius: 50,
-                            foregroundColor: (gender == Gender.female)
-                                ? selectedGenderColor
-                                : unSelectedGenderColor,
-                            child: Icon(Icons.account_circle,
-                                size: 100,
-                                color: (gender == Gender.female)
-                                    ? selectedGenderColor
-                                    : unSelectedGenderColor),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Female',
-                            style: bold16,
-                          ),
-                        ],
-                      ),
-                    )
+                    Icon(Icons.arrow_drop_down),
                   ],
                 ),
-                (_selectedGender)
-                    ? Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Text(
-                              'Select Your Location',
-                              style: bold16,
-                            ),
-                          ),
-                          AnimationLimiter(
-                            child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: 3,
-                                itemBuilder: (context, index) {
-                                  return AnimationConfiguration.staggeredList(
-                                    position: index,
-                                    duration: const Duration(milliseconds: 500),
-                                    child: SlideAnimation(
-                                      verticalOffset: 50.0,
-                                      child: FadeInAnimation(
-                                        //location card
-                                        child: Card(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                          margin: EdgeInsets.all(8.0),
-                                          elevation: 4,
-                                          child: ExpansionTile(
-                                            leading: Icon(Icons.location_on),
-                                            title: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+              ),
+            ),
+            SizedBox(
+              height: 16,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                //male
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      gender = Gender.male;
+                      _selectedGender = true;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        foregroundColor: (gender == Gender.male)
+                            ? selectedGenderColor
+                            : unSelectedGenderColor,
+                        child: Icon(Icons.account_circle,
+                            size: 100,
+                            color: (gender == Gender.male)
+                                ? selectedGenderColor
+                                : unSelectedGenderColor),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Male',
+                        style: bold16,
+                      ),
+                    ],
+                  ),
+                ),
+                //female
+                GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      gender = Gender.female;
+                      _selectedGender = true;
+                    });
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        foregroundColor: (gender == Gender.female)
+                            ? selectedGenderColor
+                            : unSelectedGenderColor,
+                        child: Icon(Icons.account_circle,
+                            size: 100,
+                            color: (gender == Gender.female)
+                                ? selectedGenderColor
+                                : unSelectedGenderColor),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Female',
+                        style: bold16,
+                      ),
+                    ],
+                  ),
+                )
+              ],
+            ),
+            (_selectedGender)
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Text(
+                          'Select Your Location',
+                          style: bold16,
+                        ),
+                      ),
+                      AnimationLimiter(
+                        child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: 3,
+                            itemBuilder: (context, index) {
+                              return AnimationConfiguration.staggeredList(
+                                position: index,
+                                duration: const Duration(milliseconds: 500),
+                                child: SlideAnimation(
+                                  verticalOffset: 50.0,
+                                  child: FadeInAnimation(
+                                    //location card
+                                    child: Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                      ),
+                                      margin: EdgeInsets.all(8.0),
+                                      elevation: 4,
+                                      child: ExpansionTile(
+                                        leading: Icon(Icons.location_on),
+                                        title: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Location title $index',
+                                              style: bold16,
+                                            ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      0, 0, 8, 8),
+                                              child: Text(
+                                                'Location Details $index\nlocation details...$index',
+                                                style: blueGrey14,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 16, bottom: 8),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.end,
                                               children: [
-                                                Text(
-                                                  'Location title $index',
-                                                  style: bold16,
-                                                ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.fromLTRB(
-                                                          0, 0, 8, 8),
-                                                  child: Text(
-                                                    'Location Details $index\nlocation details...$index',
-                                                    style: blueGrey14,
-                                                  ),
+                                                ElevatedButton(
+                                                  child: Text('    Next    '),
+                                                  onPressed: () =>
+                                                      navigateToServicePage(
+                                                          index),
                                                 ),
                                               ],
                                             ),
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    right: 16, bottom: 8),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
-                                                  children: [
-                                                    ElevatedButton(
-                                                      child:
-                                                          Text('    Next    '),
-                                                      onPressed: () =>
-                                                          navigateToServicePage(
-                                                              index),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
                                           ),
-                                        ),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                }),
-                          ),
-                        ],
-                      )
-                    : Container(),
-              ],
-            );
-          },
+                                  ),
+                                ),
+                              );
+                            }),
+                      ),
+                    ],
+                  )
+                : Container(),
+          ],
         ),
       ),
     );

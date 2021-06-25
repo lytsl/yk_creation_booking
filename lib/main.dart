@@ -1,45 +1,59 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yk_creation_booking/pages/onboarding_page.dart';
+import 'package:yk_creation_booking/pages/otp_page.dart';
 import 'package:yk_creation_booking/pages/service_page.dart';
 
-import 'constants/colors.dart';
-
-int? location, gender;
+bool? hasVisitedBefore;
+bool? hasSignedIn;
+String? number;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  location = await prefs.getInt("location");
-  gender = await prefs.getInt("gender");
-  print('Location $location');
+  hasVisitedBefore = await prefs.getBool('visit');
+  var suid = await prefs.getString('uid');
+  number = await prefs.getString('number');
+  hasSignedIn = suid != null;
+  suid = (suid == null) ? 'null' : suid;
+  print('suid = ' + suid);
   await Firebase.initializeApp();
+  final user = FirebaseAuth.instance.currentUser;
+  final uid = user == null ? 'null' : user.uid;
+  print('fa = ' + uid);
   runApp(MyApp());
 }
 //#503929
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    late var initRout;
+    if (hasVisitedBefore == null) {
+      initRout = OnBoardingPage();
+    } else {
+      if (hasSignedIn == null || number == null) {
+        initRout = OTPPage();
+      } else
+        initRout = ServicePage(number: number!);
+    }
+
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: primaryColor1,
-        accentColor: primaryColor,
-        textTheme: TextTheme(
-            //bodyText1: TextStyle(color: primaryColor),
-            //bodyText1: TextStyle(color: primaryColor),
-            ),
+        textTheme: GoogleFonts.montserratTextTheme(),
       ),
+      home: initRout,
       //home: OnBoardingPage(),
-      initialRoute: location == null ? "first" : "/",
+      /*initialRoute: hasVisitedBefore == null ? "first" : "/",
       routes: {
-        '/': (context) => ServicePage(gender: gender!, location: location!),
+        '/': (context) => ServicePage(),
         "first": (context) => OnBoardingPage(),
-      },
+      },*/
     );
   }
 }

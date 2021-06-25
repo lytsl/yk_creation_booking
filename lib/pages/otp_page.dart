@@ -1,20 +1,18 @@
 import 'dart:async';
 
-import 'package:date_format/date_format.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yk_creation_booking/constants/firebase_auth_error.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
-import 'package:yk_creation_booking/data/appointment_data.dart';
-import 'package:yk_creation_booking/util/gender.dart';
-import 'package:yk_creation_booking/widgets/card_with_side.dart';
-import 'package:yk_creation_booking/widgets/circular_button.dart';
+import 'package:yk_creation_booking/pages/service_page.dart';
 
 class OTPPage extends StatefulWidget {
-  const OTPPage({Key? key, required this.appointmentData}) : super(key: key);
+  const OTPPage({Key? key}) : super(key: key);
 
-  final AppointmentData appointmentData;
+  //final AppointmentData appointmentData;
 
   @override
   _OTPPageState createState() => _OTPPageState();
@@ -23,7 +21,7 @@ class OTPPage extends StatefulWidget {
 class _OTPPageState extends State<OTPPage> {
   final auth = FirebaseAuth.instance;
 
-  String? number;
+  String? number, uid;
   String? otpVerificationId;
   bool otpSent = false, hasSignedIn = false;
   final formKey = GlobalKey<FormState>();
@@ -35,6 +33,46 @@ class _OTPPageState extends State<OTPPage> {
   StreamController<ErrorAnimationType>? errorController;
   String otp = "";
   bool hasError = false;
+  Color bgColor = Color(0xFFF7F7F7);
+  Color logoBGColor = Color(0xffdedede);
+
+  Timer? _timer;
+  int _start = 60;
+
+  //Color(0xFFf5f6f8)
+
+  Future<void> navigateToServicePage() async {
+    //final user = FirebaseAuth.instance.currentUser?.uid;
+    print(uid);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('uid', uid!);
+    prefs.setString('number', this.number!);
+    Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+            builder: (_) => ServicePage(
+                  number: this.number!,
+                )),
+        (route) => false);
+  }
+
+  void startTimer() {
+    _start = 60;
+    const oneSec = const Duration(seconds: 1);
+    _timer = new Timer.periodic(
+      oneSec,
+      (Timer timer) {
+        if (_start == 0) {
+          setState(() {
+            timer.cancel();
+          });
+        } else {
+          setState(() {
+            _start--;
+          });
+        }
+      },
+    );
+  }
 
   Future<void> getOTP() async {
     print('get OTP');
@@ -48,6 +86,7 @@ class _OTPPageState extends State<OTPPage> {
       Fluttertoast.showToast(msg: message, toastLength: Toast.LENGTH_LONG);
       return;
     }
+    startTimer();
     setState(() {
       otpSent = true;
     });
@@ -62,11 +101,13 @@ class _OTPPageState extends State<OTPPage> {
           } catch (e) {
             print('verification error ' + e.toString());
             snackBar(e.toString());
+            //Fun.toast(e.toString());
+            return;
           }
           setState(() {
             hasSignedIn = true;
           });
-          print('signed in');
+          print('signed in try await');
           snackBar('Signed In Successfully');
         },
         verificationFailed: (FirebaseAuthException e) {
@@ -75,12 +116,13 @@ class _OTPPageState extends State<OTPPage> {
             snackBar('The provided phone number is not valid.');
             return;
           }
-          print(e.toString());
+          print('verification Failed ' + e.toString());
           snackBar(e.message);
+          //Fun.toast(e.message??'Verification failed');
         },
         codeSent: (String verificationId, int? resendToken) async {
           print('code sent');
-          snackBar('Please check your phone for the verification code.');
+          //snackBar('Please check your phone for the verification code.');
           otpVerificationId = verificationId;
         },
         codeAutoRetrievalTimeout: (String verificationId) {
@@ -89,7 +131,7 @@ class _OTPPageState extends State<OTPPage> {
         },
       );
     } catch (e) {
-      print(e.toString());
+      print('getOTP catch ' + e.toString());
       snackBar('Failed to verify phone number ' + e.toString());
     }
   }
@@ -99,16 +141,24 @@ class _OTPPageState extends State<OTPPage> {
     PhoneAuthCredential credential = PhoneAuthProvider.credential(
         verificationId: otpVerificationId!, smsCode: otp);
     try {
-      await auth
-          .signInWithCredential(credential)
-          .then((value) => print(value.user));
+      await auth.signInWithCredential(credential).then((value) {
+        uid = value.user?.uid;
+        if (uid == null) {
+          throw Exception('Could not sign in');
+          return;
+        }
+        //setState(() {
+        //hasSignedIn = true;
+        //});
+        navigateToServicePage();
+      });
+      print('signed in verifyOTP');
     } catch (e) {
-      print(e);
+      //Fun.toast('Verification Failed');
+      snackBar(FirebaseAuthErrorCode.getErrorMessage(e));
+      print('verify OTP ' + e.toString());
       return;
     }
-    setState(() {
-      hasSignedIn = true;
-    });
   }
 
   String? validateMobile(String value) {
@@ -149,295 +199,237 @@ class _OTPPageState extends State<OTPPage> {
   @override
   void dispose() {
     errorController!.close();
+    if (_timer != null) _timer!.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
-      backgroundColor: Colors.blue.shade200,
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent.shade100,
-        title: Text(
-          'Verification',
-          style: bold16,
-        ),
-      ),
+      //resizeToAvoidBottomInset: false,
+      backgroundColor: logoBGColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            //logo
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Icon(
-                Icons.account_circle,
-                size: 50,
-              ),
+        child: SingleChildScrollView(
+          child: Container(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height,
+              maxWidth: MediaQuery.of(context).size.width,
             ),
-            !hasSignedIn
-                ? Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          //continue with phone
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Icon(
-                              Icons.account_circle,
-                              size: 100,
-                            ),
-                          ),
-
-                          Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: TextField(
-                                onChanged: (t) => this.number = t,
-                                textInputAction: TextInputAction.done,
-                                keyboardType: TextInputType.phone,
-                                decoration: InputDecoration(
-                                  labelText: 'Mobile Number',
-                                  //hintText: '',
-                                  suffix: GestureDetector(
-                                    onTap: () => getOTP(),
-                                    child: Text(
-                                      'Get OTP',
-                                      style: bold16,
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.phone),
-                                )),
-                          ),
-
-                          otpSent
-                              ? Expanded(
-                                  child: Column(
-                                    children: [
-                                      SizedBox(
-                                        height: 32,
-                                      ),
-                                      Form(
-                                        key: formKey,
-                                        child: Padding(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 8.0, horizontal: 30),
-                                            child: PinCodeTextField(
-                                              appContext: context,
-                                              pastedTextStyle: TextStyle(
-                                                color: Colors.green.shade600,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                              length: 6,
-                                              obscureText: true,
-                                              obscuringCharacter: '*',
-                                              /*obscuringWidget: ,*/
-                                              blinkWhenObscuring: true,
-                                              animationType: AnimationType.fade,
-                                              pinTheme: PinTheme(
-                                                shape: PinCodeFieldShape.box,
-                                                borderRadius:
-                                                    BorderRadius.circular(5),
-                                                fieldHeight: 50,
-                                                fieldWidth: 40,
-                                                activeFillColor: hasError
-                                                    ? Colors.blue.shade100
-                                                    : Colors.white,
-                                              ),
-                                              cursorColor: Colors.black,
-                                              animationDuration:
-                                                  Duration(milliseconds: 300),
-                                              enableActiveFill: true,
-                                              errorAnimationController:
-                                                  errorController,
-                                              controller: textEditingController,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              boxShadows: [
-                                                BoxShadow(
-                                                  offset: Offset(0, 1),
-                                                  color: Colors.black12,
-                                                  blurRadius: 10,
-                                                )
-                                              ],
-                                              onCompleted: (v) {
-                                                print("Completed");
-                                              },
-                                              onChanged: (value) {
-                                                print(value);
-                                                setState(() {
-                                                  otp = value;
-                                                });
-                                              },
-                                              beforeTextPaste: (text) {
-                                                print(
-                                                    "Allowing to paste $text");
-                                                return true;
-                                              },
-                                            )),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 30.0),
-                                        child: Text(
-                                          hasError
-                                              ? "*Please fill up all the cells properly"
-                                              : "",
-                                          style: TextStyle(
-                                              color: Colors.red,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w400),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 16,
-                                      ),
-                                      CircularButton(
-                                          text: 'Verify',
-                                          onButtonTap: () async {
-                                            formKey.currentState!.validate();
-                                            if (otp.length != 6) {
-                                              errorController!.add(
-                                                  ErrorAnimationType
-                                                      .shake); // Triggering error shake animation
-                                              setState(() {
-                                                hasError = true;
-                                              });
-                                            } else {
-                                              setState(
-                                                () {
-                                                  hasError = false;
-                                                },
-                                              );
-                                              verifyOTP();
-                                            }
-                                          }),
-                                    ],
-                                  ),
-                                )
-                              : Container(),
-                        ],
+            child: Column(
+              children: [
+                //logo
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Image.asset(
+                    'assets/logo.png',
+                    height: 120,
+                    width: 120,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                //!hasSignedIn
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
                       ),
                     ),
-                  )
-                : Expanded(
                     child: Column(
+                      mainAxisSize: MainAxisSize.max,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(16.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(32),
-                              topRight: Radius.circular(32),
-                            ),
-                          ),
-                          child: CardWithSide(
-                            height:
-                                (5 * textSize('text', bold14, context).height +
-                                    4 * 4 +
-                                    8 * 6),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Appointment Details', style: bold14),
-                                  SizedBox(
-                                    height: 4,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Booked with: ',
-                                        style: bold14,
+                        SizedBox(
+                          height: 16,
+                        ),
+                        //continue with phone
+                        Text(
+                          'Continue with Phone',
+                          style: bold16,
+                        ),
+                        Image.asset(
+                          'assets/otp_image.jpg',
+                          height: 200,
+                          width: 200,
+                          fit: BoxFit.fill,
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        Card(
+                          elevation: 4,
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: TextField(
+                              onChanged: (t) => this.number = t,
+                              textInputAction: TextInputAction.done,
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
+                                contentPadding:
+                                    EdgeInsets.symmetric(vertical: 16),
+                                //labelText: 'Mobile Number',
+                                //contentPadding: const EdgeInsets.all(8.0),
+                                suffixIcon: GestureDetector(
+                                  onTap: () => getOTP(),
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 8),
+                                    child: Card(
+                                      margin: EdgeInsets.zero,
+                                      elevation: 2,
+                                      color: Color(0xFFe1e1e1),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(8))),
+                                      child: Container(
+                                        padding: EdgeInsets.all(8),
+                                        child: Icon(Icons.arrow_forward),
                                       ),
-                                      Text(
-                                        widget.appointmentData.person!,
-                                        style: black14,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 4,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Date: ',
-                                        style: bold14,
-                                      ),
-                                      Text(
-                                        '${formatDate(widget.appointmentData.date!, [
-                                                  D,
-                                                  ' ',
-                                                  dd,
-                                                  '/',
-                                                  mm,
-                                                  '/',
-                                                  yy
-                                                ])} ' +
-                                            widget.appointmentData.time!,
-                                        style: black14,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 4,
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        'Bookings for: ',
-                                        style: bold14,
-                                      ),
-                                      Text(
-                                        '${(widget.appointmentData.gender == Gender.male) ? 'Male' : 'Female'}',
-                                        style: black14,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 4,
-                                  ),
-                                  ElevatedButton(
-                                    style: ButtonStyle(
-                                        shape: MaterialStateProperty.all<
-                                                RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8.0),
-                                      //side: BorderSide(color: Colors.red)
-                                    ))),
-                                    onPressed: () {},
-                                    child: Text(
-                                      'Booking Details',
-                                      style: TextStyle(
-                                          fontSize: 14, color: Colors.white),
                                     ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ),
+                                ),
+                                //isDense: true,
+                                suffixIconConstraints:
+                                    BoxConstraints(maxWidth: 48, maxHeight: 40),
+                                border: InputBorder.none,
+                                prefixIcon: Icon(Icons.phone),
+                                hintText: 'Enter your phone number',
+                                focusColor: Colors.black,
+                              )),
                         ),
-                        Expanded(
-                          child: Container(
-                            color: Colors.white,
-                          ),
-                        ),
+
+                        otpSent
+                            ? Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    SizedBox(
+                                      height: 16,
+                                    ),
+                                    Visibility(
+                                      visible: _start == 0 ? false : true,
+                                      child: Align(
+                                          alignment: Alignment.topCenter,
+                                          child: Text(
+                                            'Fetching OTP: 0:$_start secs',
+                                            style: TextStyle(color: Colors.red),
+                                          )),
+                                    ),
+                                    Form(
+                                      key: formKey,
+                                      child: Card(
+                                        elevation: 0,
+                                        color: Colors.transparent,
+                                        margin: const EdgeInsets.symmetric(
+                                            horizontal: 64, vertical: 0),
+                                        child: TextField(
+                                            textInputAction:
+                                                TextInputAction.done,
+                                            style: TextStyle(
+                                              letterSpacing: 16.0,
+                                            ),
+                                            onChanged: (t) => this.otp = t,
+                                            keyboardType: TextInputType.phone,
+                                            textAlign: TextAlign.center,
+                                            decoration: InputDecoration(
+                                              contentPadding:
+                                                  EdgeInsets.symmetric(
+                                                      vertical: 16),
+                                              hintText: 'OTP',
+                                              //border:InputBorder.none,
+                                              /*prefixIcon:
+                                                        Icon(Icons.lock),*/
+                                              focusColor: Colors.black,
+                                              // suffix: Container(),
+                                            )),
+                                      ),
+                                    ),
+                                    /*Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 30.0),
+                                            child: Text(
+                                              hasError
+                                                  ? "*Please fill up all the cells properly"
+                                                  : "",
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400),
+                                            ),
+                                          ),*/
+                                    SizedBox(
+                                      height: 24,
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16),
+                                      child: ElevatedButton(
+                                          onPressed: () {
+                                            if (otp.length != 6) {
+                                              snackBar('OTP length must be 6');
+                                            } else {
+                                              verifyOTP();
+                                            }
+                                          },
+                                          child: Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 16),
+                                            child: Text(
+                                              'SUBMIT',
+                                              style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16),
+                                            ),
+                                          ),
+                                          style: ButtonStyle(
+                                              backgroundColor:
+                                                  MaterialStateProperty.all(Colors
+                                                      .red), // <-- Button color
+                                              overlayColor:
+                                                  MaterialStateProperty
+                                                      .resolveWith<Color?>(
+                                                          (states) {
+                                                if (states.contains(
+                                                    MaterialState.pressed))
+                                                  return Colors
+                                                      .blue; // <-- Splash color
+                                              }),
+                                              shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          12.0),
+                                                ),
+                                              ))),
+                                    ),
+                                    SizedBox(
+                                      height: 16,
+                                    ),
+                                    (_start == 0)
+                                        ? TextButton(
+                                            onPressed: getOTP,
+                                            child: Text(
+                                              'RESEND CODE',
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  decoration:
+                                                      TextDecoration.underline),
+                                            ))
+                                        : Container(),
+                                  ],
+                                ),
+                              )
+                            : Container(),
                       ],
                     ),
                   ),
-          ],
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
