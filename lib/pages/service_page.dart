@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
-import 'package:yk_creation_booking/data/appointment_model.dart';
 import 'package:yk_creation_booking/pages/time_slot_page.dart';
 import 'package:yk_creation_booking/util/gender.dart';
 
@@ -263,12 +262,12 @@ class _ServicePageState extends State<ServicePage> {
                         ),
                       ],
                     ),
-                    SizedBox(height: 40),
+                   /* SizedBox(height: 40),
                     TextButton(
                         onPressed: () {
                           AppointmentModel().postData(AppointmentData());
                         },
-                        child: Text('Send Data'))
+                        child: Text('Send Data'))*/
                   ],
                 ),
               ),
