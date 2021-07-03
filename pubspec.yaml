@@ -27,6 +27,8 @@ dependencies:
   provider: ^5.0.0
   google_fonts: ^2.1.0
   http: ^0.13.3
+  firebase_messaging: ^10.0.2
+  overlay_support: ^1.2.1
 
 
 dev_dependencies:

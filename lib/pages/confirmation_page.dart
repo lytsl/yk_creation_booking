@@ -1,24 +1,36 @@
-import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
 import 'package:yk_creation_booking/data/appointment_model.dart';
+import 'package:yk_creation_booking/data/profile_model.dart';
+import 'package:yk_creation_booking/data/salon_location_model.dart';
+import 'package:yk_creation_booking/data/salon_service_model.dart';
 import 'package:yk_creation_booking/pages/appointment_details_page.dart';
 import 'package:yk_creation_booking/widgets/circular_button.dart';
 
 class ConfirmationPage extends StatefulWidget {
-  final int gender, location;
+  final String location;
+  final int locationIndex;
+  final String gender;
   final String person, time;
   final DateTime date;
+  final List<SalonLocation> locationList;
+  final SalonService service;
+  final Profile profile;
 
   const ConfirmationPage(
       {Key? key,
       required this.location,
       required this.gender,
-    required this.person,
-    required this.time,
-    required this.date})
+      required this.person,
+      required this.time,
+      required this.date,
+      required this.locationList,
+      required this.locationIndex,
+      required this.service,
+      required this.profile})
       : super(key: key);
 
   @override
@@ -26,22 +38,40 @@ class ConfirmationPage extends StatefulWidget {
 }
 
 class _ConfirmationPageState extends State<ConfirmationPage> {
-  late int selectedLocation;
+  late int locationIndex;
 
-  void navigateToOTPPage() {
+  Future<void> navigateToAppointmentDetails() async {
+    if (locationIndex == -1) {
+      Fluttertoast.showToast(
+          msg: 'Please select a location first',
+          toastLength: Toast.LENGTH_LONG);
+      return;
+    }
     final data = AppointmentData();
-    data.storeID = selectedLocation.toString();
-    data.date = formatDate(widget.date, [D, ' ', dd, '/', mm, '/', yy]);
+    data.storeID = widget.locationList[locationIndex].storeID;
+    data.customerID = widget.profile.customerID!;
+    data.serviceID = widget.service.id;
+    data.date = widget.date;
     data.slot = widget.time;
-    data.gender = widget.gender.toString();
     data.stylist = widget.person;
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => AppointmentDetailsPage(appointmentData: data)));
+
+    final code = await AppointmentModel.postData(data);
+
+    if(code ==200) {
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) =>
+              AppointmentDetailsPage(
+                  appointmentData: data, gender: widget.gender)));
+    }else{
+      Fluttertoast.showToast(
+          msg: 'Couldn\'t book Appointment', toastLength: Toast.LENGTH_LONG);
+    }
   }
 
   @override
   void initState() {
-    this.selectedLocation = widget.location;
+    this.locationIndex = widget.locationIndex;
+    //this.selectedLocation = widget.location;
     super.initState();
   }
 
@@ -53,55 +83,59 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
           'Confirmation',
           style: bold16,
         ),
-        backgroundColor: primaryColor,
+        //backgroundColor: primaryColor,
         titleTextStyle: TextStyle(
             fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      side: BorderSide(color: primaryColor1)),
-                  leading: Icon(Icons.access_time),
-                  title: Text(widget.time +
-                      ' ' +
-                      widget.date.day.toString() +
-                      '-' +
-                      widget.date.month.toString()),
-                ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    side: BorderSide(color: primaryColor1)),
+                leading: Icon(Icons.access_time),
+                title: Text(widget.time +
+                    ' ' +
+                    widget.date.day.toString() +
+                    '-' +
+                    widget.date.month.toString()),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      side: BorderSide(color: primaryColor1)),
-                  leading: Icon(Icons.account_circle),
-                  title: Text(widget.person),
-                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    side: BorderSide(color: primaryColor1)),
+                leading: Icon(Icons.account_circle),
+                title: Text(widget.person),
               ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      side: BorderSide(color: primaryColor1)),
-                  leading: Icon(Icons.location_on),
-                  title: Text(
-                      'Location ${(this.selectedLocation == -1) ? 'Unselected' : this.selectedLocation}'),
-                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListTile(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    side: BorderSide(color: primaryColor1)),
+                leading: Icon(Icons.location_on),
+                title: Text((locationIndex == -1)
+                    ? 'Unselected Location'
+                    : widget.locationList[locationIndex].storeName),
               ),
-              AnimationLimiter(
+            ),
+            Expanded(
+              child: AnimationLimiter(
                 child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: 3,
-                    physics: NeverScrollableScrollPhysics(),
+                    //shrinkWrap: true,
+                    itemCount: widget.locationList.length,
+                    //physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
+                      Color bgColor = (index == this.locationIndex)
+                          ? (primaryColor3)
+                          : Colors.white;
                       return AnimationConfiguration.staggeredList(
                         position: index,
                         duration: const Duration(milliseconds: 500),
@@ -117,26 +151,25 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                               elevation: 4,
                               child: ExpansionTile(
                                 collapsedBackgroundColor:
-                                (index == this.selectedLocation)
-                                    ? (primaryColor2)
-                                    : primaryColor3,
-                                backgroundColor:
-                                (index == this.selectedLocation)
-                                    ? (primaryColor2)
-                                    : primaryColor3,
+                                    (index == this.locationIndex)
+                                        ? (Colors.blue.shade100)
+                                        : Colors.white,
+                                backgroundColor: (index == this.locationIndex)
+                                    ? (Colors.blue.shade100)
+                                    : Colors.white,
                                 leading: Icon(Icons.location_on),
                                 title: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Location title $index',
+                                      widget.locationList[index].storeName,
                                       style: bold16,
                                     ),
                                     Padding(
                                       padding:
-                                      const EdgeInsets.fromLTRB(0, 0, 8, 8),
+                                          const EdgeInsets.fromLTRB(0, 0, 8, 8),
                                       child: Text(
-                                        'Location Details $index\nlocation details...$index',
+                                        widget.locationList[index].storeAddress,
                                         style: blueGrey14,
                                       ),
                                     ),
@@ -151,15 +184,14 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                                       children: [
                                         ElevatedButton(
                                           child: Text(
-                                              '    ${index == this.selectedLocation ? 'Unselect' : 'Select'}    '),
+                                              '    ${index == this.locationIndex ? 'Unselect' : 'Select'}    '),
                                           onPressed: () {
                                             setState(() {
-                                              if (index ==
-                                                  this.selectedLocation)
-                                                this.selectedLocation = -1;
+                                              if (index == this.locationIndex)
+                                                this.locationIndex = -1;
                                               else
-                                                this.selectedLocation = index;
-                                              print(selectedLocation);
+                                                this.locationIndex = index;
+                                              print(locationIndex);
                                             });
                                           },
                                         ),
@@ -174,17 +206,15 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                       );
                     }),
               ),
-              Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: CircularButton(
-                        text: 'Confirm',
-                        backColor: primaryColor,
-                        onButtonTap: () => navigateToOTPPage()),
-                  )),
-            ],
-          ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: CircularButton(
+                  text: 'Confirm',
+                  //backColor: primaryColor,
+                  onButtonTap: () => navigateToAppointmentDetails()),
+            ),
+          ],
         ),
       ),
     );

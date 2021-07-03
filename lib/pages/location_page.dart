@@ -13,7 +13,7 @@ class LocationPage extends StatefulWidget {
 }
 
 class _LocationPageState extends State<LocationPage> {
-  int gender = Gender.male;
+  String gender = Gender.male;
   bool _selectedGender = false;
   int _duration = 700;
   Curve _curve = Curves.ease;
@@ -22,7 +22,7 @@ class _LocationPageState extends State<LocationPage> {
     print('navigateToServicePage');
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt("location", index);
-    await prefs.setInt("gender", gender);
+    await prefs.setString("gender", gender);
     /*Navigator.of(context).push(
       MaterialPageRoute(
           builder: (_) => ServicePage(

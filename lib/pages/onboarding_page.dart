@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:yk_creation_booking/pages/otp_page.dart';
+import 'package:yk_creation_booking/pages/login_page.dart';
 
 class OnBoardingPage extends StatefulWidget {
   @override
@@ -15,7 +15,7 @@ class _OnBoardingPageState extends State<OnBoardingPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setBool('visit', true);
     Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => OTPPage()), (route) => false);
+        MaterialPageRoute(builder: (_) => LoginPage()), (route) => false);
   }
 
   Widget _buildFullscrenImage(String assetName) {

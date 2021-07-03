@@ -1,25 +1,37 @@
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
+import 'package:yk_creation_booking/data/profile_model.dart';
+import 'package:yk_creation_booking/data/salon_location_model.dart';
+import 'package:yk_creation_booking/data/salon_service_model.dart';
 import 'package:yk_creation_booking/pages/time_slot_page.dart';
 import 'package:yk_creation_booking/util/gender.dart';
 
 class ServicePage extends StatefulWidget {
   final String number;
+  final Profile profile;
 
-  ServicePage({Key? key, required this.number}) : super(key: key);
+  ServicePage({Key? key, required this.number,required this.profile}) : super(key: key);
 
   @override
   _ServicePageState createState() => _ServicePageState();
 }
 
 class _ServicePageState extends State<ServicePage> {
-  int gender = Gender.male;
-  int location = -1;
+  String gender = Gender.male;
+  int selectedLocationIndex = -1;
 
   bool _selectedGender = false;
+
+  List<SalonLocation>? locationList;
+  List<SalonService>? serviceList;
+
+  late final selectedServiceList;
+  int serviceCount = 0,serviceIndex = -1;
 
   int _pageState = 0;
   double xOffset = 0, yOffset = 0;
@@ -28,7 +40,7 @@ class _ServicePageState extends State<ServicePage> {
 
   int _locationState = 0;
   double locationYOffset = 0;
-  double locationHeight = 0;
+  double locationHeight = 0, serviceHeight = 0;
   double fixedLocationHeight = 0;
   String locationText = 'Select Your location';
 
@@ -36,15 +48,49 @@ class _ServicePageState extends State<ServicePage> {
   Curve _curve = Curves.ease;
   double windowHeight = 0, windowWidth = 0;
 
+  void postPersonData(){
+    if(widget.profile.name == null)
+      return;
+    Profile profile = widget.profile;
+    profile.customerID = SalonLocationModel.customerID;
+    profile.gender = this.gender;
+    ProfileModel.postData(profile);
+  }
+
+  void getSalonLocationData() async {
+    locationList = await SalonLocationModel.getLocationList(widget.number);
+    setState(() {});
+  }
+
+  void getSalonServiceData(String id) async {
+    serviceList = await SalonServiceModel.postData(id);
+    print(serviceList!.length);
+    selectedServiceList = List.filled(serviceList!.length, false);
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getSalonLocationData();
+  }
+
   void navigateToTimePage() {
-    //print(widget.location);
-    //final data = AppointmentModel();
-    //data.gender = gender.toString();
-    //data.storeID = location.toString();
+    final List<SalonService> selectedList = [];
+    /*for (int i = 0; i < selectedServiceList.length; i++) {
+      if (selectedServiceList[i]) selectedList.add(serviceList![i]);
+    }*/
+    selectedList.add(serviceList![serviceIndex]);
+    if(widget.profile.customerID==null)
+      widget.profile.customerID = SalonLocationModel.customerID;
     Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => TimeSlotPage(
               gender: gender,
-              location: location,
+              location: locationList![selectedLocationIndex].storeName,
+              serviceList: selectedList,
+          locationList: locationList!,
+          locationIndex: selectedLocationIndex,
+          profile: widget.profile,
             )));
   }
 
@@ -66,14 +112,16 @@ class _ServicePageState extends State<ServicePage> {
       case 0:
         xOffset = 0;
         yOffset = windowHeight;
-        //color = Colors.white;
-        //opacity = 1;
+        serviceHeight = windowHeight - yOffset;
         break;
       case 1:
         xOffset = 0;
         yOffset = windowHeight * (0.1) + 50;
-        //opacity = 0.7;
-        //color = Colors.blueGrey.shade200;
+        serviceHeight = windowHeight -
+            yOffset -
+            textSize('text', bold16, context).height * 2 -
+            16 * 4 -
+            8;
         break;
     }
 
@@ -85,7 +133,7 @@ class _ServicePageState extends State<ServicePage> {
         2;
 
     if (_locationState == 0) {
-      if (location == -1)
+      if (selectedLocationIndex == -1)
         locationHeight =
             textSize('text', TextStyle(fontSize: 14), context).height + 16 + 8;
       else
@@ -197,10 +245,16 @@ class _ServicePageState extends State<ServicePage> {
                         //male
                         GestureDetector(
                           onTap: () {
+                            postPersonData();
+                            if(selectedLocationIndex == -1){
+                              Fluttertoast.showToast(
+                                  msg: 'Please select location first', toastLength: Toast.LENGTH_LONG);
+                            }else{
+                              _pageState = 1;
+                            }
                             setState(() {
                               gender = Gender.male;
                               _selectedGender = true;
-                              _pageState = 1;
                             });
                           },
                           child: Column(
@@ -230,10 +284,16 @@ class _ServicePageState extends State<ServicePage> {
                         //female
                         GestureDetector(
                           onTap: () {
+                            postPersonData();
+                            if(selectedLocationIndex == -1){
+                              Fluttertoast.showToast(
+                                  msg: 'Please select location first', toastLength: Toast.LENGTH_LONG);
+                            }else{
+                              _pageState = 1;
+                            }
                             setState(() {
                               gender = Gender.female;
                               _selectedGender = true;
-                              _pageState = 1;
                             });
                           },
                           child: Column(
@@ -262,7 +322,7 @@ class _ServicePageState extends State<ServicePage> {
                         ),
                       ],
                     ),
-                   /* SizedBox(height: 40),
+                    /* SizedBox(height: 40),
                     TextButton(
                         onPressed: () {
                           AppointmentModel().postData(AppointmentData());
@@ -304,10 +364,11 @@ class _ServicePageState extends State<ServicePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            (location == -1)
+                            (selectedLocationIndex == -1)
                                 ? Container()
                                 : Text(
-                                    'Location $location',
+                                    locationList![selectedLocationIndex]
+                                        .storeName,
                                     style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.bold),
@@ -315,7 +376,7 @@ class _ServicePageState extends State<ServicePage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                (location == -1)
+                                (selectedLocationIndex == -1)
                                     ? Text('Select your location')
                                     : Row(
                                         crossAxisAlignment:
@@ -333,20 +394,22 @@ class _ServicePageState extends State<ServicePage> {
                                                 CrossAxisAlignment.start,
                                             children: [
                                               Text(
-                                                'Location $location Details',
+                                                locationList![
+                                                        selectedLocationIndex]
+                                                    .storeAddress,
                                                 style: TextStyle(
                                                     color: Colors.black,
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
                                               ),
-                                              Text(
-                                                '($location.46 KM)',
+                                              /*Text(
+                                                '($selectedLocationIndex.46 KM)',
                                                 style: TextStyle(
                                                     fontSize: 14,
                                                     fontWeight:
                                                         FontWeight.bold),
-                                              )
+                                              )*/
                                             ],
                                           ),
                                         ],
@@ -360,87 +423,108 @@ class _ServicePageState extends State<ServicePage> {
                     )
                   : SizedBox(
                       height: locationHeight,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(24.0),
-                            child: Text(
-                              'Select Your Location',
-                              style: bold16,
-                            ),
-                          ),
-                          AnimationLimiter(
-                            child: ListView.builder(
-                                shrinkWrap: true,
-                                itemCount: 3,
-                                itemBuilder: (context, index) {
-                                  return AnimationConfiguration.staggeredList(
-                                    position: index,
-                                    duration: const Duration(milliseconds: 500),
-                                    child: SlideAnimation(
-                                      verticalOffset: 50.0,
-                                      child: FadeInAnimation(
-                                        //location card
-                                        child: Card(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(8.0),
-                                          ),
-                                          margin: EdgeInsets.all(8.0),
-                                          elevation: 4,
-                                          child: ExpansionTile(
-                                            leading: Icon(Icons.location_on),
-                                            title: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  'Location title $index',
-                                                  style: bold16,
+                      child: (locationList == null)
+                          ? Center(child: CircularProgressIndicator())
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: Text(
+                                    'Select Your Location',
+                                    style: bold16,
+                                  ),
+                                ),
+                                AnimationLimiter(
+                                  child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: locationList!.length,
+                                      itemBuilder: (context, index) {
+                                        return AnimationConfiguration
+                                            .staggeredList(
+                                          position: index,
+                                          duration:
+                                              const Duration(milliseconds: 500),
+                                          child: SlideAnimation(
+                                            verticalOffset: 50.0,
+                                            child: FadeInAnimation(
+                                              //location card
+                                              child: Card(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          8.0),
                                                 ),
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.fromLTRB(
-                                                          0, 0, 8, 8),
-                                                  child: Text(
-                                                    'Location Details $index\nlocation details...$index',
-                                                    style: blueGrey14,
+                                                margin: EdgeInsets.all(8.0),
+                                                elevation: 4,
+                                                child: ExpansionTile(
+                                                  leading:
+                                                      Icon(Icons.location_on),
+                                                  title: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(
+                                                        locationList![index]
+                                                            .storeName,
+                                                        style: bold16,
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .fromLTRB(
+                                                                0, 0, 8, 8),
+                                                        child: Text(
+                                                          locationList![index]
+                                                              .storeAddress,
+                                                          style: blueGrey14,
+                                                        ),
+                                                      ),
+                                                    ],
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            children: [
-                                              Padding(
-                                                padding: const EdgeInsets.only(
-                                                    right: 16, bottom: 8),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.end,
                                                   children: [
-                                                    ElevatedButton(
-                                                      child:
-                                                          Text('    Next    '),
-                                                      onPressed: () {
-                                                        setState(() {
-                                                          location = index;
-                                                          _locationState = 0;
-                                                        });
-                                                      },
+                                                    Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 16,
+                                                              bottom: 8),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .end,
+                                                        children: [
+                                                          ElevatedButton(
+                                                            child: Text(
+                                                                '    Next    '),
+                                                            onPressed: () {
+                                                              getSalonServiceData(
+                                                                  locationList![
+                                                                          index]
+                                                                      .storeID);
+                                                              setState(() {
+                                                                selectedLocationIndex =
+                                                                    index;
+                                                                _locationState =
+                                                                    0;
+                                                                if(_selectedGender)
+                                                                  _pageState =1;
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }),
-                          ),
-                        ],
-                      ),
+                                        );
+                                      }),
+                                ),
+                              ],
+                            ),
                     ),
             ),
             AnimatedContainer(
@@ -460,84 +544,166 @@ class _ServicePageState extends State<ServicePage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Align(
-                    alignment: Alignment.topCenter,
-                    child: Container(
-                      margin: EdgeInsets.only(top: 16),
-                      child: Text(
-                        'Service List',
-                        style: bold16,
-                      ),
+                  Padding(
+                    padding: EdgeInsets.only(top: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(left: 16),
+                          child: Text(
+                            'Service List',
+                            style: bold16,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(right: 16),
+                          child: Text(
+                            /*'Total Service: $serviceCount',*/
+                            '',
+                            style: bold16,
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                  Expanded(
-                    child: ListView.builder(
-                        //shrinkWrap: true,
-                        itemCount: 10,
-                        itemBuilder: (context, index) {
-                          return Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Hair Style $index',
-                                      style: bold16,
-                                    ),
-                                    Text(
-                                      '30 Min',
-                                      style: blueGrey14,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Row(
+                  Container(
+                    height: serviceHeight,
+                    child: (serviceList == null)
+                        ? Center(child: CircularProgressIndicator())
+                        : ListView.builder(
+                            //shrinkWrap: true,
+                            itemCount: serviceList!.length,
+                            itemBuilder: (context, index) {
+                              return Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    '500',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            serviceList![index].name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            //textAlign: TextAlign.justify,
+                                            style: bold16,
+                                          ),
+                                          Text(
+                                            serviceList![index]
+                                                    .duration
+                                                    .toString() +
+                                                ' Min',
+                                            style: blueGrey14,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(16.0),
-                                    child: ElevatedButton(
-                                      onPressed: () => navigateToTimePage(),
-                                      child: Text(
-                                        'Book',
+                                  Row(
+                                    children: [
+                                      Text(
+                                        serviceList![index].price.toString(),
                                         style: TextStyle(
-                                          //fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                            fontSize: 16),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
                                       ),
-                                      style: ButtonStyle(
-                                        shape: MaterialStateProperty.all<
-                                            RoundedRectangleBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(50.0),
-                                            //side: BorderSide(color: Colors.red),
+                                      SizedBox(width: 16),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 16),
+                                        child: SizedBox(
+                                          width: 110,
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                serviceIndex = index;
+                                                /*selectedServiceList[index] =
+                                                    !selectedServiceList[index];
+                                                if (selectedServiceList[index])
+                                                  serviceCount++;
+                                                else
+                                                  serviceCount--;*/
+                                              });
+                                            },
+                                            child: Text(
+                                              /*selectedServiceList[index]*/
+                                              serviceIndex == index
+                                                  ? 'Booked'
+                                                  : 'Book',
+                                              style: TextStyle(
+                                                  //fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                  fontSize: 16),
+                                            ),
+                                            style: ButtonStyle(
+                                              elevation:
+                                                  MaterialStateProperty.all(
+                                                      selectedServiceList[index]
+                                                          ? 0
+                                                          : 2),
+                                              shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          50.0),
+                                                  //side: BorderSide(color: Colors.red),
+                                                ),
+                                              ),
+                                              padding:
+                                                  MaterialStateProperty.all(
+                                                      EdgeInsets.symmetric(
+                                                          horizontal: 16)),
+                                              backgroundColor:
+                                                  MaterialStateProperty.all(
+                                                      //selectedServiceList[index]
+                                                      serviceIndex == index
+                                                          ? Colors.deepOrange
+                                                          : Colors.orange),
+                                            ),
                                           ),
                                         ),
-                                        padding: MaterialStateProperty.all(
-                                            EdgeInsets.symmetric(
-                                                horizontal: 16)),
-                                        backgroundColor:
-                                            MaterialStateProperty.all(
-                                                Colors.deepOrange),
-                                      ),
-                                    ),
+                                      )
+                                    ],
                                   )
                                 ],
-                              )
-                            ],
-                          );
-                        }),
+                              );
+                            }),
                   ),
+                  Align(
+                    alignment: Alignment.bottomRight,
+                    child: Padding(
+                      padding:
+                          const EdgeInsets.only(right: 16, top: 0, bottom: 8),
+                      child: ElevatedButton(
+                          onPressed: navigateToTimePage,
+                          style: ButtonStyle(
+                            elevation: MaterialStateProperty.all(4),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50.0),
+                                //side: BorderSide(color: Colors.red),
+                              ),
+                            ),
+                            padding: MaterialStateProperty.all(
+                                EdgeInsets.symmetric(
+                                    horizontal: 40, vertical: 8)),
+                            //backgroundColor: MaterialStateProperty.all(Colors.blue),
+                          ),
+                          child: Text(
+                            'Next',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          )),
+                    ),
+                  )
                 ],
               ),
             ),

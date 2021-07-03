@@ -7,18 +7,21 @@ import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yk_creation_booking/constants/firebase_auth_error.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
+import 'package:yk_creation_booking/data/profile_model.dart';
+import 'package:yk_creation_booking/data/salon_location_model.dart';
+import 'package:yk_creation_booking/pages/email_signup_page.dart';
 import 'package:yk_creation_booking/pages/service_page.dart';
 
-class OTPPage extends StatefulWidget {
-  const OTPPage({Key? key}) : super(key: key);
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
 
   //final AppointmentData appointmentData;
 
   @override
-  _OTPPageState createState() => _OTPPageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _OTPPageState extends State<OTPPage> {
+class _LoginPageState extends State<LoginPage> {
   final auth = FirebaseAuth.instance;
 
   String? number, uid;
@@ -47,12 +50,26 @@ class _OTPPageState extends State<OTPPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('uid', uid!);
     prefs.setString('number', this.number!);
-    Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(
-            builder: (_) => ServicePage(
-                  number: this.number!,
-                )),
-        (route) => false);
+
+    bool isNewCustomer = await SalonLocationModel.isNewCustomer(number!);
+    //isNewCustomer = true;
+    if(isNewCustomer==true) {
+      Navigator.of(context).push(
+          MaterialPageRoute(
+              builder: (context) =>
+                  EmailSignUpPage(
+                    number: this.number!,
+                  )));
+    } else {
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+              builder: (_) =>
+                  ServicePage(
+                    number: this.number!,
+                    profile: Profile(),
+                  )),
+              (route) => false);
+    }
   }
 
   void startTimer() {
@@ -89,6 +106,12 @@ class _OTPPageState extends State<OTPPage> {
     startTimer();
     setState(() {
       otpSent = true;
+    });
+    SalonLocationModel.getCustomerID(number!).then((value) async  {
+      if(value==null)
+        return;
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      prefs.setString('customerID', value);
     });
     try {
       await auth.verifyPhoneNumber(
@@ -261,7 +284,7 @@ class _OTPPageState extends State<OTPPage> {
                           elevation: 4,
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
-                          child: TextField(
+                          child:TextField(
                               onChanged: (t) => this.number = t,
                               textInputAction: TextInputAction.done,
                               keyboardType: TextInputType.phone,
@@ -283,7 +306,7 @@ class _OTPPageState extends State<OTPPage> {
                                               Radius.circular(8))),
                                       child: Container(
                                         padding: EdgeInsets.all(8),
-                                        child: Icon(Icons.arrow_forward),
+                                        child: Icon(Icons.arrow_forward,color: Colors.grey.shade600,),
                                       ),
                                     ),
                                   ),
@@ -292,7 +315,9 @@ class _OTPPageState extends State<OTPPage> {
                                 suffixIconConstraints:
                                     BoxConstraints(maxWidth: 48, maxHeight: 40),
                                 border: InputBorder.none,
-                                prefixIcon: Icon(Icons.phone),
+                                filled: true,
+                                fillColor: Colors.white,
+                                prefixIcon: Icon(Icons.phone,color: Colors.grey.shade600,),
                                 hintText: 'Enter your phone number',
                                 focusColor: Colors.black,
                               )),

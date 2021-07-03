@@ -1,43 +1,37 @@
-import 'package:http/http.dart';
+import 'package:date_format/date_format.dart';
+import 'package:http/http.dart' as http;
 
 class AppointmentData {
   late String storeID,
-      gender,
-      serviceID = '?',
-      date,
+      customerID,
+      serviceID,
       slot,
-      stylist,
-      contactNumber,
-      name = 'empty',
-      email = 'empty',
-      source = 'empty';
+      stylist;
+
+  late DateTime date;
 }
 
 class AppointmentModel {
-  static const url = 'http://salonneeds.in/gaurav/api/appointment_api.php';
 
-  Future<dynamic> postData(AppointmentData data) async {
-    var request = MultipartRequest('POST',
-        Uri.parse('http://salonneeds.in/gaurav/api/appointment_api.php'));
+  static Future<int> postData(AppointmentData data) async {
+    var request = http.MultipartRequest('POST', Uri.parse('http://salonneeds.in/gaurav/api/appointment_api.php'));
     request.fields.addAll({
-      'store_id': '1',
-      'gender': '1',
-      'service_id': '2',
-      'date': '2021-06-23',
-      'slot': '9:30',
-      'stylist': '1',
-      'contact_number': '1234567899',
-      'name': 'demo demo',
-      'email': 'demo@gmail.com',
-      'source': 'advertisement'
+      'store_id': data.storeID,
+      'service_id': data.serviceID,
+      'date': formatDate(data.date, [yyyy, '-', mm, '-', dd]),
+      'slot': data.slot,
+      'stylist': data.stylist,
+      'customer_id': data.customerID
     });
 
-    StreamedResponse response = await request.send();
+    http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
       print(await response.stream.bytesToString());
+      return 200;
     } else {
       print(response.reasonPhrase);
+      return 0;
     }
   }
 }

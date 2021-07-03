@@ -18,7 +18,7 @@ class CircularButton extends StatelessWidget {
       onTap: this.onButtonTap,
       child: Container(
         width: double.infinity,
-        margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
+        //margin: EdgeInsets.fromLTRB(16, 0, 16, 16),
         padding: EdgeInsets.symmetric(vertical: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.all(Radius.circular(50)),
