@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/data/profile_model.dart';
 import 'package:yk_creation_booking/pages/login_page.dart';
 import 'package:yk_creation_booking/pages/onboarding_page.dart';
@@ -128,6 +129,8 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           textTheme: GoogleFonts.montserratTextTheme(),
+          primaryColor: primaryColor,
+          accentColor: primaryColor,
         ),
         home: initRout,
         //home: OnBoardingPage(),

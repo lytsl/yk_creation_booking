@@ -95,7 +95,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
               child: ListTile(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    side: BorderSide(color: primaryColor1)),
+                    side: BorderSide(color: primaryColor)),
                 leading: Icon(Icons.access_time),
                 title: Text(widget.time +
                     ' ' +
@@ -109,7 +109,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
               child: ListTile(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    side: BorderSide(color: primaryColor1)),
+                    side: BorderSide(color: primaryColor)),
                 leading: Icon(Icons.account_circle),
                 title: Text(widget.person),
               ),
@@ -119,7 +119,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
               child: ListTile(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    side: BorderSide(color: primaryColor1)),
+                    side: BorderSide(color: primaryColor)),
                 leading: Icon(Icons.location_on),
                 title: Text((locationIndex == -1)
                     ? 'Unselected Location'
@@ -133,9 +133,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                     itemCount: widget.locationList.length,
                     //physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
-                      Color bgColor = (index == this.locationIndex)
-                          ? (primaryColor3)
-                          : Colors.white;
+
                       return AnimationConfiguration.staggeredList(
                         position: index,
                         duration: const Duration(milliseconds: 500),

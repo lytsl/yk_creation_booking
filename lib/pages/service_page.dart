@@ -1,4 +1,3 @@
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -15,7 +14,8 @@ class ServicePage extends StatefulWidget {
   final String number;
   final Profile profile;
 
-  ServicePage({Key? key, required this.number,required this.profile}) : super(key: key);
+  ServicePage({Key? key, required this.number, required this.profile})
+      : super(key: key);
 
   @override
   _ServicePageState createState() => _ServicePageState();
@@ -31,7 +31,7 @@ class _ServicePageState extends State<ServicePage> {
   List<SalonService>? serviceList;
 
   late final selectedServiceList;
-  int serviceCount = 0,serviceIndex = -1;
+  int serviceCount = 0, serviceIndex = -1;
 
   int _pageState = 0;
   double xOffset = 0, yOffset = 0;
@@ -48,9 +48,8 @@ class _ServicePageState extends State<ServicePage> {
   Curve _curve = Curves.ease;
   double windowHeight = 0, windowWidth = 0;
 
-  void postPersonData(){
-    if(widget.profile.name == null)
-      return;
+  void postPersonData() {
+    if (widget.profile.name == null) return;
     Profile profile = widget.profile;
     profile.customerID = SalonLocationModel.customerID;
     profile.gender = this.gender;
@@ -81,16 +80,16 @@ class _ServicePageState extends State<ServicePage> {
       if (selectedServiceList[i]) selectedList.add(serviceList![i]);
     }*/
     selectedList.add(serviceList![serviceIndex]);
-    if(widget.profile.customerID==null)
+    if (widget.profile.customerID == null)
       widget.profile.customerID = SalonLocationModel.customerID;
     Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => TimeSlotPage(
               gender: gender,
               location: locationList![selectedLocationIndex].storeName,
               serviceList: selectedList,
-          locationList: locationList!,
-          locationIndex: selectedLocationIndex,
-          profile: widget.profile,
+              locationList: locationList!,
+              locationIndex: selectedLocationIndex,
+              profile: widget.profile,
             )));
   }
 
@@ -197,7 +196,7 @@ class _ServicePageState extends State<ServicePage> {
                         child: Container(
                           height: 6,
                           width: 30,
-                          color: Colors.red,
+                          color: primaryColor,
                         )),
                     Container(
                       height: 2,
@@ -246,10 +245,11 @@ class _ServicePageState extends State<ServicePage> {
                         GestureDetector(
                           onTap: () {
                             postPersonData();
-                            if(selectedLocationIndex == -1){
+                            if (selectedLocationIndex == -1) {
                               Fluttertoast.showToast(
-                                  msg: 'Please select location first', toastLength: Toast.LENGTH_LONG);
-                            }else{
+                                  msg: 'Please select location first',
+                                  toastLength: Toast.LENGTH_LONG);
+                            } else {
                               _pageState = 1;
                             }
                             setState(() {
@@ -285,10 +285,11 @@ class _ServicePageState extends State<ServicePage> {
                         GestureDetector(
                           onTap: () {
                             postPersonData();
-                            if(selectedLocationIndex == -1){
+                            if (selectedLocationIndex == -1) {
                               Fluttertoast.showToast(
-                                  msg: 'Please select location first', toastLength: Toast.LENGTH_LONG);
-                            }else{
+                                  msg: 'Please select location first',
+                                  toastLength: Toast.LENGTH_LONG);
+                            } else {
                               _pageState = 1;
                             }
                             setState(() {
@@ -435,93 +436,102 @@ class _ServicePageState extends State<ServicePage> {
                                     style: bold16,
                                   ),
                                 ),
-                                AnimationLimiter(
-                                  child: ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: locationList!.length,
-                                      itemBuilder: (context, index) {
-                                        return AnimationConfiguration
-                                            .staggeredList(
-                                          position: index,
-                                          duration:
-                                              const Duration(milliseconds: 500),
-                                          child: SlideAnimation(
-                                            verticalOffset: 50.0,
-                                            child: FadeInAnimation(
-                                              //location card
-                                              child: Card(
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
-                                                ),
-                                                margin: EdgeInsets.all(8.0),
-                                                elevation: 4,
-                                                child: ExpansionTile(
-                                                  leading:
-                                                      Icon(Icons.location_on),
-                                                  title: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
+                                Expanded(
+                                  child: AnimationLimiter(
+                                    child: ListView.builder(
+                                        shrinkWrap: true,
+                                        itemCount: locationList!.length,
+                                        itemBuilder: (context, index) {
+                                          return AnimationConfiguration
+                                              .staggeredList(
+                                            position: index,
+                                            duration:
+                                                const Duration(milliseconds: 500),
+                                            child: SlideAnimation(
+                                              verticalOffset: 50.0,
+                                              child: FadeInAnimation(
+                                                //location card
+                                                child: Card(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8.0),
+                                                  ),
+                                                  margin: EdgeInsets.all(8.0),
+                                                  elevation: 4,
+                                                  child: ExpansionTile(
+                                                    leading:
+                                                        Icon(Icons.location_on),
+                                                    title: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          locationList![index]
+                                                              .storeName,
+                                                          style: bold16,
+                                                        ),
+                                                        Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                      .fromLTRB(
+                                                                  0, 0, 8, 8),
+                                                          child: Text(
+                                                            locationList![index]
+                                                                .storeAddress,
+                                                            style: blueGrey14,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
                                                     children: [
-                                                      Text(
-                                                        locationList![index]
-                                                            .storeName,
-                                                        style: bold16,
-                                                      ),
                                                       Padding(
                                                         padding:
-                                                            const EdgeInsets
-                                                                    .fromLTRB(
-                                                                0, 0, 8, 8),
-                                                        child: Text(
-                                                          locationList![index]
-                                                              .storeAddress,
-                                                          style: blueGrey14,
+                                                            const EdgeInsets.only(
+                                                                right: 16,
+                                                                bottom: 8),
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .end,
+                                                          children: [
+                                                            ElevatedButton(
+                                                              style: ButtonStyle(
+                                                                backgroundColor:
+                                                                    MaterialStateProperty
+                                                                        .all(
+                                                                            primaryColor), // <-- Button color
+                                                              ),
+                                                              child: Text(
+                                                                  '    Next    '),
+                                                              onPressed: () {
+                                                                getSalonServiceData(
+                                                                    locationList![
+                                                                            index]
+                                                                        .storeID);
+                                                                setState(() {
+                                                                  selectedLocationIndex =
+                                                                      index;
+                                                                  _locationState =
+                                                                      0;
+                                                                  if (_selectedGender)
+                                                                    _pageState =
+                                                                        1;
+                                                                });
+                                                              },
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ],
                                                   ),
-                                                  children: [
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                              right: 16,
-                                                              bottom: 8),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .end,
-                                                        children: [
-                                                          ElevatedButton(
-                                                            child: Text(
-                                                                '    Next    '),
-                                                            onPressed: () {
-                                                              getSalonServiceData(
-                                                                  locationList![
-                                                                          index]
-                                                                      .storeID);
-                                                              setState(() {
-                                                                selectedLocationIndex =
-                                                                    index;
-                                                                _locationState =
-                                                                    0;
-                                                                if(_selectedGender)
-                                                                  _pageState =1;
-                                                              });
-                                                            },
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        );
-                                      }),
+                                          );
+                                        }),
+                                  ),
                                 ),
                               ],
                             ),
@@ -653,7 +663,6 @@ class _ServicePageState extends State<ServicePage> {
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           50.0),
-                                                  //side: BorderSide(color: Colors.red),
                                                 ),
                                               ),
                                               padding:
@@ -664,8 +673,8 @@ class _ServicePageState extends State<ServicePage> {
                                                   MaterialStateProperty.all(
                                                       //selectedServiceList[index]
                                                       serviceIndex == index
-                                                          ? Colors.deepOrange
-                                                          : Colors.orange),
+                                                          ? primaryColor1
+                                                          : primaryColor),
                                             ),
                                           ),
                                         ),
@@ -685,11 +694,11 @@ class _ServicePageState extends State<ServicePage> {
                           onPressed: navigateToTimePage,
                           style: ButtonStyle(
                             elevation: MaterialStateProperty.all(4),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(
+                            backgroundColor:
+                            MaterialStateProperty.all(accentColor),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                               RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(50.0),
-                                //side: BorderSide(color: Colors.red),
                               ),
                             ),
                             padding: MaterialStateProperty.all(

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CardWithSide extends StatelessWidget {
-  final Color color;
+  final Color color,iconColor;
   final Widget child;
   final Function()? onTap;
   final double height;
 
   CardWithSide(
       {this.color = Colors.orange,
+        this.iconColor = Colors.black,
       required this.child,
       this.onTap,
       this.height = 100.0});
@@ -44,7 +45,7 @@ class CardWithSide extends StatelessWidget {
                       height: this.height,
                       child: Container(
                           margin: EdgeInsets.only(right: 16),
-                          child: Icon(Icons.calendar_today)),
+                          child: Icon(Icons.calendar_today,color: iconColor,)),
                     ),
                     Expanded(child: child),
                   ],

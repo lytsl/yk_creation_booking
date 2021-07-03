@@ -1,5 +1,6 @@
 import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
+import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/functions.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
 import 'package:yk_creation_booking/data/appointment_model.dart';
@@ -35,6 +36,8 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
             ),
           ),
           child: CardWithSide(
+            color: primaryColor,
+            iconColor: Colors.white,
             height: (5 *
                 Fun.textHeight(14, context) +
                 4 * 4 +
@@ -108,12 +111,13 @@ class _AppointmentDetailsPageState extends State<AppointmentDetailsPage> {
                   ),
                   ElevatedButton(
                     style: ButtonStyle(
+                        backgroundColor:
+                        MaterialStateProperty.all(primaryColor1),
                         shape: MaterialStateProperty.all<
                             RoundedRectangleBorder>(
                             RoundedRectangleBorder(
                               borderRadius:
                               BorderRadius.circular(8.0),
-//side: BorderSide(color: Colors.red)
                             ))),
                     onPressed: () {},
                     child: Text(

@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
+import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
+import 'package:yk_creation_booking/data/appointment_model.dart';
 import 'package:yk_creation_booking/data/profile_model.dart';
 import 'package:yk_creation_booking/data/salon_location_model.dart';
 import 'package:yk_creation_booking/data/salon_service_model.dart';
-import 'package:yk_creation_booking/pages/confirmation_page.dart';
+import 'package:yk_creation_booking/pages/appointment_details_page.dart';
 
 double textSize14 = 16, textSizeBold16 = 18;
 
@@ -58,7 +60,7 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
     print('Date selected: $date');
   }
 
-  void navigateToConfirmationPage() {
+  void navigateToAppointmentDetails() {
     //print(person);
     //print(time);
     print(widget.gender);
@@ -71,18 +73,17 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
     final List<String> slotList = [];
     for (int i = 0; i < selectedSlotList.length; i++)
       if (selectedSlotList[i] != null) slotList.add(selectedSlotList[i]!);
+
+    final data = AppointmentData();
+    data.storeID = widget.locationList[widget.locationIndex].storeID;
+    data.customerID = widget.profile.customerID!;
+    data.serviceID = widget.serviceList.first.id;
+    data.date = selectedDay;
+    data.slot = slotList.first;
+    data.stylist = stylistList.first;
+
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => ConfirmationPage(
-              location: widget.location,
-              gender: widget.gender,
-              person: stylistList.first,
-              time: slotList.first,
-              date: selectedDay,
-              locationList: widget.locationList,
-              locationIndex: widget.locationIndex,
-              profile: widget.profile,
-          service: widget.serviceList.first,
-            )));
+        builder: (context) => AppointmentDetailsPage(appointmentData: data, gender: widget.gender)));
   }
 
   Size textSize(String text, TextStyle textStyle, BuildContext context) =>
@@ -115,10 +116,10 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
                     weekDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     events: _events,
                     isExpandable: false,
-                    eventDoneColor: Colors.green,
-                    selectedColor: Colors.pink,
-                    todayColor: Colors.blue,
-                    eventColor: Colors.grey,
+                    //eventDoneColor: Colors.green,
+                    selectedColor: primaryColor1,
+                    todayColor: primaryColor,
+                    //eventColor: Colors.grey,
                     isExpanded: false,
                     onDateSelected: (time) {
                       selectedDay = time;
@@ -179,15 +180,9 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
                             padding:
                                 MaterialStateProperty.all(EdgeInsets.all(16)),
                             backgroundColor: MaterialStateProperty.all(
-                                Colors.pink[300]), // <-- Button color
-                            overlayColor:
-                                MaterialStateProperty.resolveWith<Color?>(
-                                    (states) {
-                              if (states.contains(MaterialState.pressed))
-                                return Colors.red; // <-- Splash color
-                            }),
+                                primaryColor), // <-- Button color
                           ),
-                          onPressed: navigateToConfirmationPage,
+                          onPressed: navigateToAppointmentDetails,
                           child: Text(
                             'Book Appointment',
                             style: TextStyle(fontSize: 16),
@@ -296,7 +291,7 @@ class _ServiceViewState extends State<ServiceView> {
                           side: BorderSide(
                               color: (_selectedSlot ==
                                       widget.slotList.elementAt(index)
-                                  ? Colors.pink
+                                  ? primaryColor
                                   : Colors.blueGrey.shade200),
                               width: 2),
                         ),

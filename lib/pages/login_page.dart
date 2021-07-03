@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:yk_creation_booking/constants/colors.dart';
 import 'package:yk_creation_booking/constants/firebase_auth_error.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
 import 'package:yk_creation_booking/data/profile_model.dart';
@@ -53,22 +54,19 @@ class _LoginPageState extends State<LoginPage> {
 
     bool isNewCustomer = await SalonLocationModel.isNewCustomer(number!);
     //isNewCustomer = true;
-    if(isNewCustomer==true) {
-      Navigator.of(context).push(
-          MaterialPageRoute(
-              builder: (context) =>
-                  EmailSignUpPage(
-                    number: this.number!,
-                  )));
+    if (isNewCustomer == true) {
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => EmailSignUpPage(
+                number: this.number!,
+              )));
     } else {
       Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-              builder: (_) =>
-                  ServicePage(
+              builder: (_) => ServicePage(
                     number: this.number!,
                     profile: Profile(),
                   )),
-              (route) => false);
+          (route) => false);
     }
   }
 
@@ -107,9 +105,8 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       otpSent = true;
     });
-    SalonLocationModel.getCustomerID(number!).then((value) async  {
-      if(value==null)
-        return;
+    SalonLocationModel.getCustomerID(number!).then((value) async {
+      if (value == null) return;
       SharedPreferences prefs = await SharedPreferences.getInstance();
       prefs.setString('customerID', value);
     });
@@ -230,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       //resizeToAvoidBottomInset: false,
-      backgroundColor: logoBGColor,
+      backgroundColor: primaryColor,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
@@ -284,7 +281,7 @@ class _LoginPageState extends State<LoginPage> {
                           elevation: 4,
                           margin: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
-                          child:TextField(
+                          child: TextField(
                               onChanged: (t) => this.number = t,
                               textInputAction: TextInputAction.done,
                               keyboardType: TextInputType.phone,
@@ -294,7 +291,10 @@ class _LoginPageState extends State<LoginPage> {
                                 //labelText: 'Mobile Number',
                                 //contentPadding: const EdgeInsets.all(8.0),
                                 suffixIcon: GestureDetector(
-                                  onTap: () => getOTP(),
+                                  onTap: () {
+                                    FocusScope.of(context).unfocus();
+                                    getOTP();
+                                  },
                                   child: Padding(
                                     padding: const EdgeInsets.only(right: 8),
                                     child: Card(
@@ -306,7 +306,10 @@ class _LoginPageState extends State<LoginPage> {
                                               Radius.circular(8))),
                                       child: Container(
                                         padding: EdgeInsets.all(8),
-                                        child: Icon(Icons.arrow_forward,color: Colors.grey.shade600,),
+                                        child: Icon(
+                                          Icons.arrow_forward,
+                                          color: primaryColor,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -317,7 +320,10 @@ class _LoginPageState extends State<LoginPage> {
                                 border: InputBorder.none,
                                 filled: true,
                                 fillColor: Colors.white,
-                                prefixIcon: Icon(Icons.phone,color: Colors.grey.shade600,),
+                                prefixIcon: Icon(
+                                  Icons.phone,
+                                  color: primaryColor,
+                                ),
                                 hintText: 'Enter your phone number',
                                 focusColor: Colors.black,
                               )),
@@ -410,9 +416,9 @@ class _LoginPageState extends State<LoginPage> {
                                           ),
                                           style: ButtonStyle(
                                               backgroundColor:
-                                                  MaterialStateProperty.all(Colors
-                                                      .red), // <-- Button color
-                                              overlayColor:
+                                                  MaterialStateProperty.all(
+                                                      primaryColor), // <-- Button color
+                                              /*overlayColor:
                                                   MaterialStateProperty
                                                       .resolveWith<Color?>(
                                                           (states) {
@@ -420,7 +426,7 @@ class _LoginPageState extends State<LoginPage> {
                                                     MaterialState.pressed))
                                                   return Colors
                                                       .blue; // <-- Splash color
-                                              }),
+                                              }),*/
                                               shape: MaterialStateProperty.all<
                                                   RoundedRectangleBorder>(
                                                 RoundedRectangleBorder(
