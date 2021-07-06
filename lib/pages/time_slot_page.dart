@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_neat_and_clean_calendar/flutter_neat_and_clean_calendar.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
+import 'package:yk_creation_booking/constants/functions.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
 import 'package:yk_creation_booking/data/appointment_model.dart';
 import 'package:yk_creation_booking/data/profile_model.dart';
@@ -9,7 +11,7 @@ import 'package:yk_creation_booking/data/salon_location_model.dart';
 import 'package:yk_creation_booking/data/salon_service_model.dart';
 import 'package:yk_creation_booking/pages/appointment_details_page.dart';
 
-double textSize14 = 16, textSizeBold16 = 18;
+double textSize14 = 16, textSize16 = 18;
 
 class TimeSlotPage extends StatefulWidget {
   final String location;
@@ -40,11 +42,22 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
   final timeList = List.generate(3, (index) => '${index + 8}:30');
   final timeList1 = List.generate(4, (index) => '${index + 12 + 3}:00');
   final personList = List.generate(5, (index) => 'Person ${index + 1}');
+  List<String> slotList = List.generate(20, (index) {
+    if (index == 0) return '09:00';
+    if (index == 1) return '09:30';
+    if (index % 2 == 0) {
+      return '${(index/2+9).toStringAsFixed(0)}:00';
+    } else {
+      return '${((index-1)/2+9).toStringAsFixed(0)}:30';
+    }
+  });
+
   late final List<String?> selectedSlotList, selectedStylistList;
   late final List<SalonService> serviceList;
   int slotCount = 0, stylistCount = 0;
   DateTime selectedDay = DateTime.now();
-  String _selectedSlot = '', _selectedStylist = '';
+  String selectedSlot = '09:00';
+  int selectedStylistIndex = -1;
 
   @override
   void initState() {
@@ -60,7 +73,7 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
     print('Date selected: $date');
   }
 
-  void navigateToAppointmentDetails() {
+  Future<void> navigateToAppointmentDetails() async {
     //print(person);
     //print(time);
     print(widget.gender);
@@ -79,28 +92,39 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
     data.customerID = widget.profile.customerID!;
     data.serviceID = widget.serviceList.first.id;
     data.date = selectedDay;
-    data.slot = slotList.first;
-    data.stylist = stylistList.first;
+    data.slot = selectedSlot;
+    data.stylist = personList[selectedStylistIndex];
 
-    Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => AppointmentDetailsPage(appointmentData: data, gender: widget.gender)));
+    final code = await AppointmentModel.postData(data);
+
+    if (code == 200) {
+      Fluttertoast.showToast(
+          msg: 'Appointment Booked', toastLength: Toast.LENGTH_SHORT);
+      Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => AppointmentDetailsPage(
+              appointmentData: data, gender: widget.gender)));
+
+    } else {
+      Fluttertoast.showToast(
+          msg: code ?? 'Appointment was not booked',
+          toastLength: Toast.LENGTH_LONG);
+    }
   }
 
-  Size textSize(String text, TextStyle textStyle, BuildContext context) =>
+  Size textSize(double fontSize, BuildContext context) =>
       (TextPainter(
-              text: TextSpan(text: text, style: textStyle),
-              maxLines: 1,
-              textScaleFactor: MediaQuery.of(context).textScaleFactor,
-              textDirection: TextDirection.ltr)
-            ..layout())
+          text: TextSpan(text: 'text', style: TextStyle(fontSize: fontSize,fontWeight: FontWeight.bold)),
+          maxLines: 1,
+          textScaleFactor: MediaQuery.of(context).textScaleFactor,
+          textDirection: TextDirection.ltr)
+        ..layout())
           .size;
 
   @override
   Widget build(BuildContext context) {
-    textSize14 = textSize('text', TextStyle(fontSize: 14), context).height;
-    textSizeBold16 = textSize('text',
-            TextStyle(fontSize: 16, fontWeight: FontWeight.bold), context)
-        .height;
+    textSize14 = Fun.textHeight(14, context);
+    textSize16 = Fun.textHeight(16, context);
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -139,7 +163,7 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
                           return Container(
                             height: 80,
                           );
-                        return ServiceView(
+                        /*return ServiceView(
                           serviceName: serviceList[index].name,
                           slotList: timeList,
                           timeList1: timeList1,
@@ -158,6 +182,85 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
                               });
                             selectedStylistList[index] = stylist;
                           },
+                        );*/
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                children: [
+                                  Text('Time :',style: TextStyle(fontSize: 16),),
+                                  SizedBox(width: 16,),
+                                  SizedBox(
+                                    width: textSize(16, context).width+16+24+8,
+                                    child: DropdownButton(
+                                      //hint: Text('Please choose a time slot'),
+                                      value: selectedSlot,
+                                      onChanged: (String? value){
+                                        setState(() {
+                                          selectedSlot = value!;
+                                        });
+                                      },
+                                      items: slotList
+                                          .map<DropdownMenuItem<String>>((slot) {
+                                            return DropdownMenuItem(
+                                                child: Text(slot,style: bold16,),
+                                                value: slot,
+                                              );})
+                                          .toList(),
+                                      underline: Container(),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              height: textSize16 + 16 + 16 + 80,
+                              child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  shrinkWrap: true,
+                                  itemCount: personList.length,
+                                  itemBuilder: (context, index) {
+                                    return GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedStylistIndex = index;
+                                        });
+                                        //widget.stylistCallBack(widget.stylistList[index]);
+                                      },
+                                      child: Card(
+                                        color: Colors.white,
+                                        margin: EdgeInsets.symmetric(horizontal: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12.0),
+                                          side: BorderSide(
+                                              color:
+                                              (selectedStylistIndex == index
+                                                  ? primaryColor
+                                                  : Colors.blueGrey.shade200),
+                                              width: 3),
+                                        ),
+                                        child: Container(
+                                          padding: EdgeInsets.all(16),
+                                          child: Column(
+                                            children: [
+                                              Icon(
+                                                Icons.account_circle,
+                                                size: 80,
+                                              ),
+                                              Text(
+                                                personList.elementAt(index),
+                                                style: bold16,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                            ),
+                          ],
                         );
                       }),
                 ),
@@ -165,8 +268,9 @@ class _TimeSlotPageState extends State<TimeSlotPage> {
             ),
             Align(
               alignment: Alignment.bottomCenter,
-              child: (stylistCount == serviceList.length &&
-                      slotCount == serviceList.length)
+              child: /*(stylistCount == serviceList.length &&
+                      slotCount == serviceList.length)*/
+              (selectedStylistIndex!=-1)
                   ? Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: ElevatedButton(
@@ -366,7 +470,7 @@ class _ServiceViewState extends State<ServiceView> {
               height: 16,
             ),
             Container(
-              height: textSizeBold16 + 16 + 16 + 80,
+              height: textSize16 + 16 + 16 + 80,
               child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   shrinkWrap: true,

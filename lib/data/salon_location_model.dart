@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SalonLocation{
 
@@ -22,7 +23,7 @@ class SalonLocationModel{
   static Future<List<SalonLocation>> getLocationList(String number) async {
     var request = http.MultipartRequest('POST', Uri.parse('http://salonneeds.in/gaurav/api/login.php'));
     request.fields.addAll({
-      'contact_number': number.substring(1)
+      'contact_number': '91'+number
     });
 
     http.StreamedResponse response = await request.send();
@@ -49,7 +50,7 @@ class SalonLocationModel{
   static Future<bool> isNewCustomer(String number) async{
     var request = http.MultipartRequest('POST', Uri.parse('http://salonneeds.in/gaurav/api/login.php'));
     request.fields.addAll({
-      'contact_number': number.substring(1)
+      'contact_number': '91'+number
     });
 
     http.StreamedResponse response = await request.send();
@@ -62,6 +63,9 @@ class SalonLocationModel{
       final responseData = jsonDecode(responseString);
       isNewCust = responseData['data']['is_new_customer'] ?? true;
       customerID = responseData['data']['customer_id'];
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      if(customerID!=null)
+        prefs.setString('customerID', customerID!);
     }
     else {
       print(response.reasonPhrase);
@@ -73,24 +77,24 @@ class SalonLocationModel{
   static Future<String?> getCustomerID(String number) async{
     var request = http.MultipartRequest('POST', Uri.parse('http://salonneeds.in/gaurav/api/login.php'));
     request.fields.addAll({
-      'contact_number': number.substring(1)
+      'contact_number': '91'+number
     });
 
     http.StreamedResponse response = await request.send();
 
-    String? customer_id;
+    String? customerId;
 
     if (response.statusCode == 200) {
       final responseString = await response.stream.bytesToString();
       print(responseString);
       final responseData = jsonDecode(responseString);
-      customer_id = responseData['data']['customer_id'];
+      customerId = responseData['data']['customer_id'];
     }
     else {
       print(response.reasonPhrase);
     }
 
-    return customer_id;
+    return customerId;
   }
 
 }

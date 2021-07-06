@@ -15,22 +15,19 @@ import 'package:yk_creation_booking/services/page_notifications.dart';
 
 bool? hasVisitedBefore;
 bool? hasSignedIn;
-String? number,customerID;
+String? number, customerID;
 late final FirebaseMessaging _messaging;
 late PushNotification _notificationInfo;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  hasVisitedBefore = await prefs.getBool('visit');
-  var suid = await prefs.getString('uid');
-  number = await prefs.getString('number');
-  customerID = await prefs.getString('customerID');
-  hasSignedIn = suid != null;
-  suid = (suid == null) ? 'null' : suid;
-  print('suid = ' + suid);
+  hasVisitedBefore = prefs.getBool('visit');
+  number = prefs.getString('number');
+  customerID = prefs.getString('customerID');
   await Firebase.initializeApp();
   final user = FirebaseAuth.instance.currentUser;
+  hasSignedIn = user != null;
   final uid = user == null ? 'null' : user.uid;
   print('fa = ' + uid);
 
@@ -38,7 +35,7 @@ Future<void> main() async {
 
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // 3. On iOS, this helps to take the user permissions
+  // On iOS, this helps to take the user permissions
   NotificationSettings settings = await _messaging.requestPermission(
     alert: true,
     badge: true,
@@ -58,16 +55,13 @@ Future<void> main() async {
       );
       _notificationInfo = notification;
 
-      if (_notificationInfo != null) {
-        // For displaying the notification as an overlay
-        showSimpleNotification(
-          Text(_notificationInfo.title!),
-          //leading: NotificationBadge(totalNotifications: _totalNotifications),
-          subtitle: Text(_notificationInfo.body!),
-          background: Colors.cyan.shade700,
-          duration: Duration(seconds: 2),
-        );
-      }
+      showSimpleNotification(
+        Text(_notificationInfo.title!),
+        //leading: NotificationBadge(totalNotifications: _totalNotifications),
+        subtitle: Text(_notificationInfo.body!),
+        background: Colors.cyan.shade700,
+        duration: Duration(seconds: 2),
+      );
     });
 
     // For handling notification when the app is in background
@@ -83,7 +77,7 @@ Future<void> main() async {
 
     // For handling notification when the app is in terminated state
     RemoteMessage? initialMessage =
-    await FirebaseMessaging.instance.getInitialMessage();
+        await FirebaseMessaging.instance.getInitialMessage();
 
     if (initialMessage != null) {
       print(initialMessage.notification?.title);
@@ -111,12 +105,12 @@ class MyApp extends StatelessWidget {
     Profile profile = Profile();
     profile.customerID = customerID;
     if (hasVisitedBefore == null) {
-      initRout = OnBoardingPage();
+      initRout = OnBoardingPage.ID;
     } else {
       if (hasSignedIn == null || number == null) {
-        initRout = LoginPage();
+        initRout = LoginPage.ID;
       } else
-        initRout = ServicePage(number: number!,profile: profile,);
+        initRout = ServicePage.ID;
     }
     //initRout = LoginPage();
     SystemChrome.setPreferredOrientations([
@@ -132,13 +126,16 @@ class MyApp extends StatelessWidget {
           primaryColor: primaryColor,
           accentColor: primaryColor,
         ),
-        home: initRout,
         //home: OnBoardingPage(),
-        /*initialRoute: hasVisitedBefore == null ? "first" : "/",
+        initialRoute: initRout,
         routes: {
-          '/': (context) => ServicePage(),
-          "first": (context) => OnBoardingPage(),
-        },*/
+          OnBoardingPage.ID: (context) => OnBoardingPage(),
+          LoginPage.ID: (context) => LoginPage(),
+          ServicePage.ID: (context) => ServicePage(
+                number: number!,
+                profile: profile,
+              ),
+        },
       ),
     );
   }

@@ -38,10 +38,10 @@ class PushNotificationManager{
         print('User granted permission');
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           // Parse the message received
-          PushNotification notification = PushNotification(
+          /*PushNotification notification = PushNotification(
             title: message.notification?.title,
             body: message.notification?.body,
-          );
+          );*/
 
         });
       } else {

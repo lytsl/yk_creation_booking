@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:yk_creation_booking/pages/login_page.dart';
 
 class OnBoardingPage extends StatefulWidget {
+  static const ID = 'OnBoardingPage';
   @override
   _OnBoardingPageState createState() => _OnBoardingPageState();
 }

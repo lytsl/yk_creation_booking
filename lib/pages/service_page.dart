@@ -1,8 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:yk_creation_booking/constants/colors.dart';
+import 'package:yk_creation_booking/constants/functions.dart';
 import 'package:yk_creation_booking/constants/text_styles.dart';
 import 'package:yk_creation_booking/data/profile_model.dart';
 import 'package:yk_creation_booking/data/salon_location_model.dart';
@@ -11,10 +14,17 @@ import 'package:yk_creation_booking/pages/time_slot_page.dart';
 import 'package:yk_creation_booking/util/gender.dart';
 
 class ServicePage extends StatefulWidget {
+  static const ID = 'ServicePage';
   final String number;
   final Profile profile;
+  final int pageState, locationState;
 
-  ServicePage({Key? key, required this.number, required this.profile})
+  ServicePage(
+      {Key? key,
+      required this.number,
+      required this.profile,
+      this.locationState = 0,
+      this.pageState = 0})
       : super(key: key);
 
   @override
@@ -71,6 +81,8 @@ class _ServicePageState extends State<ServicePage> {
   @override
   void initState() {
     super.initState();
+    this._pageState = widget.pageState;
+    this._locationState = widget.locationState;
     getSalonLocationData();
   }
 
@@ -83,29 +95,24 @@ class _ServicePageState extends State<ServicePage> {
     if (widget.profile.customerID == null)
       widget.profile.customerID = SalonLocationModel.customerID;
     Navigator.of(context).push(MaterialPageRoute(
-        builder: (context) => TimeSlotPage(
-              gender: gender,
-              location: locationList![selectedLocationIndex].storeName,
-              serviceList: selectedList,
-              locationList: locationList!,
-              locationIndex: selectedLocationIndex,
-              profile: widget.profile,
-            )));
+      builder: (context) => TimeSlotPage(
+        gender: gender,
+        location: locationList![selectedLocationIndex].storeName,
+        serviceList: selectedList,
+        locationList: locationList!,
+        locationIndex: selectedLocationIndex,
+        profile: widget.profile,
+      ),
+    ));
   }
-
-  Size textSize(String text, TextStyle textStyle, BuildContext context) =>
-      (TextPainter(
-              text: TextSpan(text: text, style: textStyle),
-              maxLines: 1,
-              textScaleFactor: MediaQuery.of(context).textScaleFactor,
-              textDirection: TextDirection.ltr)
-            ..layout())
-          .size;
 
   @override
   Widget build(BuildContext context) {
     windowHeight = MediaQuery.of(context).size.height;
     windowWidth = MediaQuery.of(context).size.width;
+
+    double textSize16 = Fun.textHeight(16, context);
+    double textSize14 = Fun.textHeight(14, context);
 
     switch (_pageState) {
       case 0:
@@ -116,38 +123,20 @@ class _ServicePageState extends State<ServicePage> {
       case 1:
         xOffset = 0;
         yOffset = windowHeight * (0.1) + 50;
-        serviceHeight = windowHeight -
-            yOffset -
-            textSize('text', bold16, context).height * 2 -
-            16 * 4 -
-            8;
+        serviceHeight =
+            windowHeight - yOffset - textSize16 * 1 - max<double>(40+12,textSize16) - 16 * 4 - 8 ;
         break;
     }
 
-    locationYOffset = textSize('text', bold16, context).height +
-        textSize('text', TextStyle(fontSize: 14), context).height * 2 +
-        16 * 4 +
-        8 +
-        6 +
-        2;
+    locationYOffset = textSize16 + textSize14 * 2 + 16 * 4 + 8 + 6 + 2;
 
     if (_locationState == 0) {
       if (selectedLocationIndex == -1)
-        locationHeight =
-            textSize('text', TextStyle(fontSize: 14), context).height + 16 + 8;
+        locationHeight = textSize14 + 16 + 8;
       else
-        locationHeight = textSize(
-                        'text',
-                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                        context)
-                    .height *
-                3 +
-            16 +
-            8;
-      //if (_pageState != 1) color = Colors.white;
+        locationHeight = textSize14 * 3 + 16 + 8;
     } else {
       locationHeight = windowHeight - locationYOffset - 24;
-      //color = Colors.blueGrey.shade200;
     }
 
     return Scaffold(
@@ -445,8 +434,8 @@ class _ServicePageState extends State<ServicePage> {
                                           return AnimationConfiguration
                                               .staggeredList(
                                             position: index,
-                                            duration:
-                                                const Duration(milliseconds: 500),
+                                            duration: const Duration(
+                                                milliseconds: 500),
                                             child: SlideAnimation(
                                               verticalOffset: 50.0,
                                               child: FadeInAnimation(
@@ -488,7 +477,8 @@ class _ServicePageState extends State<ServicePage> {
                                                     children: [
                                                       Padding(
                                                         padding:
-                                                            const EdgeInsets.only(
+                                                            const EdgeInsets
+                                                                    .only(
                                                                 right: 16,
                                                                 bottom: 8),
                                                         child: Row(
@@ -497,7 +487,8 @@ class _ServicePageState extends State<ServicePage> {
                                                                   .end,
                                                           children: [
                                                             ElevatedButton(
-                                                              style: ButtonStyle(
+                                                              style:
+                                                                  ButtonStyle(
                                                                 backgroundColor:
                                                                     MaterialStateProperty
                                                                         .all(
@@ -557,7 +548,7 @@ class _ServicePageState extends State<ServicePage> {
                   Padding(
                     padding: EdgeInsets.only(top: 16),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
                           padding: EdgeInsets.only(left: 16),
@@ -566,14 +557,25 @@ class _ServicePageState extends State<ServicePage> {
                             style: bold16,
                           ),
                         ),
-                        Padding(
+                        SizedBox(width: 8),
+                        IconButton(
+                            iconSize: 40,
+                            onPressed: () {
+                              if (_pageState != 0) {
+                                setState(() {
+                                  _pageState = 0;
+                                });
+                              }
+                            },
+                            icon: Icon(Icons.arrow_drop_down)),
+                        /*Padding(
                           padding: EdgeInsets.only(right: 16),
                           child: Text(
-                            /*'Total Service: $serviceCount',*/
+                            */ /*'Total Service: $serviceCount',*/ /*
                             '',
                             style: bold16,
                           ),
-                        )
+                        )*/
                       ],
                     ),
                   ),
@@ -581,109 +583,119 @@ class _ServicePageState extends State<ServicePage> {
                     height: serviceHeight,
                     child: (serviceList == null)
                         ? Center(child: CircularProgressIndicator())
-                        : ListView.builder(
-                            //shrinkWrap: true,
-                            itemCount: serviceList!.length,
-                            itemBuilder: (context, index) {
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Flexible(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(16.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            serviceList![index].name,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            //textAlign: TextAlign.justify,
-                                            style: bold16,
-                                          ),
-                                          Text(
-                                            serviceList![index]
-                                                    .duration
-                                                    .toString() +
-                                                ' Min',
-                                            style: blueGrey14,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                  Row(
+                        : (serviceList!.length == 0)
+                            ? Center(
+                                child:
+                                    Text('No service is currently available'),
+                              )
+                            : ListView.builder(
+                                //shrinkWrap: true,
+                                itemCount: serviceList!.length,
+                                itemBuilder: (context, index) {
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        serviceList![index].price.toString(),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
+                                      Flexible(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                serviceList![index].name,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                //textAlign: TextAlign.justify,
+                                                style: bold16,
+                                              ),
+                                              Text(
+                                                serviceList![index]
+                                                        .duration
+                                                        .toString() +
+                                                    ' Min',
+                                                style: blueGrey14,
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                      SizedBox(width: 16),
-                                      Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 16),
-                                        child: SizedBox(
-                                          width: 110,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              setState(() {
-                                                serviceIndex = index;
-                                                /*selectedServiceList[index] =
+                                      Row(
+                                        children: [
+                                          Text(
+                                            serviceList![index]
+                                                    .price
+                                                    .toString() +
+                                                ' ₹',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 18,
+                                            ),
+                                          ),
+                                          SizedBox(width: 16),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: 16),
+                                            child: SizedBox(
+                                              width: 110,
+                                              child: ElevatedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    serviceIndex = index;
+                                                    /*selectedServiceList[index] =
                                                     !selectedServiceList[index];
                                                 if (selectedServiceList[index])
                                                   serviceCount++;
                                                 else
                                                   serviceCount--;*/
-                                              });
-                                            },
-                                            child: Text(
-                                              /*selectedServiceList[index]*/
-                                              serviceIndex == index
-                                                  ? 'Booked'
-                                                  : 'Book',
-                                              style: TextStyle(
-                                                  //fontWeight: FontWeight.bold,
-                                                  color: Colors.white,
-                                                  fontSize: 16),
-                                            ),
-                                            style: ButtonStyle(
-                                              elevation:
-                                                  MaterialStateProperty.all(
-                                                      selectedServiceList[index]
-                                                          ? 0
-                                                          : 2),
-                                              shape: MaterialStateProperty.all<
-                                                  RoundedRectangleBorder>(
-                                                RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          50.0),
+                                                  });
+                                                },
+                                                child: Text(
+                                                  /*selectedServiceList[index]*/
+                                                  serviceIndex == index
+                                                      ? 'Booked'
+                                                      : 'Book',
+                                                  style: TextStyle(
+                                                      //fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
+                                                      fontSize: 16),
+                                                ),
+                                                style: ButtonStyle(
+                                                  elevation:
+                                                      MaterialStateProperty.all(
+                                                          selectedServiceList[
+                                                                  index]
+                                                              ? 0
+                                                              : 2),
+                                                  shape:
+                                                      MaterialStateProperty.all<
+                                                          RoundedRectangleBorder>(
+                                                    RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              50.0),
+                                                    ),
+                                                  ),
+                                                  padding:
+                                                      MaterialStateProperty.all(
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 16)),
+                                                  backgroundColor:
+                                                      MaterialStateProperty.all(
+                                                          //selectedServiceList[index]
+                                                          serviceIndex == index
+                                                              ? primaryColor1
+                                                              : primaryColor),
                                                 ),
                                               ),
-                                              padding:
-                                                  MaterialStateProperty.all(
-                                                      EdgeInsets.symmetric(
-                                                          horizontal: 16)),
-                                              backgroundColor:
-                                                  MaterialStateProperty.all(
-                                                      //selectedServiceList[index]
-                                                      serviceIndex == index
-                                                          ? primaryColor1
-                                                          : primaryColor),
                                             ),
-                                          ),
-                                        ),
+                                          )
+                                        ],
                                       )
                                     ],
-                                  )
-                                ],
-                              );
-                            }),
+                                  );
+                                }),
                   ),
                   Align(
                     alignment: Alignment.bottomRight,
@@ -695,8 +707,9 @@ class _ServicePageState extends State<ServicePage> {
                           style: ButtonStyle(
                             elevation: MaterialStateProperty.all(4),
                             backgroundColor:
-                            MaterialStateProperty.all(accentColor),
-                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                MaterialStateProperty.all(accentColor),
+                            shape: MaterialStateProperty.all<
+                                RoundedRectangleBorder>(
                               RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(50.0),
                               ),

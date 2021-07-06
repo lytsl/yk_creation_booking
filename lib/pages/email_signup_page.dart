@@ -40,10 +40,14 @@ class _EmailSignUpPageState extends State<EmailSignUpPage> {
     profile.name = _name;
     Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-            builder: (context) => ServicePage(
-                  number: widget.number,
-                  profile: profile,
-                )),
+          builder: (context) => ServicePage(
+            number: widget.number,
+            profile: profile,
+          ),
+          settings: RouteSettings(
+            name: ServicePage.ID,
+          ),
+        ),
         (route) => false);
   }
 

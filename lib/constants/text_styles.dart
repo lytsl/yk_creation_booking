@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:yk_creation_booking/constants/colors.dart';
 
 const TextStyle bold16 = TextStyle(fontWeight: FontWeight.bold, fontSize: 16);
 const TextStyle blueGrey14 =

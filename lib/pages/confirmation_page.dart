@@ -71,7 +71,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
   @override
   void initState() {
     this.locationIndex = widget.locationIndex;
-    //this.selectedLocation = widget.location;
     super.initState();
   }
 
